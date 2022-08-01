@@ -1,6 +1,8 @@
 import { DATA } from './data.js';
 
 var CHART;
+var WIDTH = window.innerWidth;
+var HEIGHT = window.innerHeight;
 var CHART_OPTION = {
   title: [
     {
@@ -17,19 +19,26 @@ var CHART_OPTION = {
   grid: [
     {
       id: "ptmMap",
-      width: "750px",
-      height: "750px",
+      width: HEIGHT * 0.65 + "px",
+      height: HEIGHT * 0.65 + "px",
       bottom: "80px",
       left: "100px",
       show: true,
-      backgroundColor: "#EFEFEF"
+      backgroundColor: "#FAFAFA"
     },
     {
-      id: "ptmStackedBar",
-      width: "750px",
-      height: "100px",
-      bottom: "870px",
+      id: "ptmBarsTop",
+      width: HEIGHT * 0.65 + "px",
+      height: HEIGHT * 0.15 + "px",
+      bottom: HEIGHT * 0.65 + 100 + "px",
       left: '100px'
+    },
+    {
+      id: "ptmBarsRight",
+      width: HEIGHT * 0.15 + "px",
+      height: HEIGHT * 0.65 + "px",
+      bottom: "80px",
+      left: HEIGHT * 0.65 + 120 + "px"
     }
   ],
   xAxis: [
@@ -47,11 +56,24 @@ var CHART_OPTION = {
       }
     },
     {
-      id: "ptmStackedBarX",
+      id: "ptmBarsTopX",
       type: 'category',
       data: [],
       show: false,
       gridIndex: 1
+    },
+    {
+      id: "ptmBarsRightX",
+      type: 'value',
+      gridIndex: 2,
+      name: 'No. PTMs',
+      nameLocation: 'middle',
+      nameGap: 60,
+      nameTextStyle: {
+        fontWeight: 'bold',
+        fontSize: 14
+      },
+      minInterval: 1
     }
   ],
   yAxis: [
@@ -70,7 +92,7 @@ var CHART_OPTION = {
       }
     },
     {
-      id: "ptmStackedBarY",
+      id: "ptmBarsTopY",
       type: 'value',
       gridIndex: 1,
       name: 'No. PTMs',
@@ -81,6 +103,14 @@ var CHART_OPTION = {
         fontSize: 14
       },
       minInterval: 1
+    },
+    {
+      id: "ptmBarsRightY",
+      type: 'category',
+      data: [],
+      show: false,
+      gridIndex: 2,
+      inverse: true
     }
   ],
   axisPointer: {
@@ -91,14 +121,17 @@ var CHART_OPTION = {
     link: [
       {
         xAxisIndex: [ 0, 1 ]
+      },
+      {
+        yAxisIndex: [ 0, 2 ]
       }
     ]
   },
-  tooltip: {
+  /*tooltip: {
     show: true,
     position: [ 900, 50 ],
     extraCssText: 'height: 800px; width: 950px'
-  },
+  },*/
   toolbox: {
     feature: {
       myTool1: {
@@ -135,32 +168,45 @@ var CHART_OPTION = {
   dataZoom: [
     {
       type: 'inside',
-      show: true,
+      show: false,
       xAxisIndex: 1
+    },
+    {
+      type: 'inside',
+      show: false,
+      yAxisIndex: 2
     }
   ],
   visualMap: {
     min: 0,
     max: 1,
+    range: [ 1, 1 ],
     dimension: 2,
-    seriesIndex: 0,
+    seriesIndex: [ 0 ],
     hoverLink: true,
     inverse: false,
     orient: 'horizontal',
     itemHeight: 800,
     bottom: '60px',
     right: '80px',
-    text: ['2', '1'],
     textStyle: {
       color: '#607196',
       fontSize: 12
     },
+    precision: 0,
     calculable: true,
     inRange: {
-      color: ['#E8DAB2', '#BF545B', '#BF5483', '#9454BF', '#5474BF']
+      color: ['#61ACDA', '#C662DA', '#DA6262']
+    },
+    outOfRange: {
+      color: [ '#DFD9E2' ]
     },
     formatter: (value) => {
-      return Math.round(value);
+      if ( value == 0 ) {
+        return "In contact (Cα↔ < 5Å); Modified, but no joint PTMs";
+      } else {
+        return Math.round(value);
+      }
     }
   },
   series: [
@@ -170,27 +216,45 @@ var CHART_OPTION = {
       data: [],
       itemStyle: {
         borderColor: '#CCCCCC',
-        borderWidth: 0.3
+        borderWidth: 0.1
+      },
+      emphasis: {
+        disabled: true
+      }
+    },
+    {
+      name: 'ContactMap',
+      type: 'heatmap',
+      data: [],
+      itemStyle: {
+        borderColor: '#CCCCCC',
+        borderWidth: 0.1,
+        color: '#B5ACBA'
+      },
+      emphasis: {
+        disabled: true
       }
     }
   ]
 };
-var PTMStackedBars = {};
-var PTMLine = { };
+var PTMCounts = {};
+var PTMBarsTop = { };
+var PTMBarsRight = { };
 var PTMSimilarityState = 'intersection';
 
 window.onload = _ => {
-  CHART = echarts.init(document.getElementById("chartContainer"), { "renderer": "canvas" });
+  CHART = echarts.init(document.getElementById("chartContainer"), { "renderer": "svg" });
   document.getElementById("accSelect").onchange = (event) => {
     if (event.isTrusted && event.type == 'change') {
       updateChart(document.getElementById("accSelect").value);
     }
   };
   CHART.on('datazoom', (event) => {
-    if (event.dataZoomIndex == 0) {
+    if ( event.dataZoomIndex !== undefined ) {
       return;
     }
-    let zoomFactor = -1;
+    let zoomFactorX = -1;
+    let zoomFactorY = -1;
     if (event.batch[0].dataZoomId == '\x00_ec_\x00toolbox-dataZoom_xAxis0' && event.batch[1].dataZoomId == '\x00_ec_\x00toolbox-dataZoom_yAxis0') {
       if (event.batch[0].startValue && event.batch[0].endValue && event.batch[1].startValue && event.batch[1].endValue) {
         CHART.dispatchAction({
@@ -199,7 +263,14 @@ window.onload = _ => {
           startValue: event.batch[0].startValue,
           endValue: event.batch[0].endValue
         });
-        zoomFactor = event.batch[0].endValue - event.batch[0].startValue;
+        zoomFactorX = event.batch[0].endValue - event.batch[0].startValue;
+        CHART.dispatchAction({
+          type: 'dataZoom',
+          dataZoomIndex: 1,
+          startValue: event.batch[1].startValue,
+          endValue: event.batch[1].endValue
+        });
+        zoomFactorY = event.batch[1].endValue - event.batch[1].startValue;
       } else {
         CHART.dispatchAction({
           type: 'dataZoom',
@@ -207,54 +278,71 @@ window.onload = _ => {
           start: event.batch[0].start,
           end: event.batch[0].end
         });
-        zoomFactor = ((event.batch[0].end - event.batch[0].start) / 100) * CHART_OPTION.xAxis[0].data.length;
+        zoomFactorX = ((event.batch[0].end - event.batch[0].start) / 100) * CHART_OPTION.xAxis[0].data.length;
+        CHART.dispatchAction({
+          type: 'dataZoom',
+          dataZoomIndex: 1,
+          start: event.batch[1].start,
+          end: event.batch[1].end
+        });
+        zoomFactorY = ((event.batch[1].end - event.batch[1].start) / 100) * CHART_OPTION.yAxis[2].data.length;
       }
     }
-    if ( zoomFactor <= 30 ) {
-      addStackedBar( );
-    } else {
-      cleanStackedBar();
-    }
+    toggleStackedBar( zoomFactorX, zoomFactorY );
   });
 };
 
 function updateChart(proteinAcc) {
-  CHART_OPTION.series = [ CHART_OPTION.series[ 0 ] ];
+  CHART_OPTION.series = [ CHART_OPTION.series[ 0 ], CHART_OPTION.series[ 1 ] ];
   CHART_OPTION.xAxis[0].data = [];
   CHART_OPTION.yAxis[0].data = [];
   CHART_OPTION.series[0].data = [];
   CHART_OPTION.xAxis[1].data = [];
   CHART_OPTION.yAxis[1].data = [];
-  CHART_OPTION.visualMap.max = 0;
-  PTMStackedBars = {};
-  PTMLine = {
-    name: 'PTMLine',
-    type: 'line',
+  CHART_OPTION.xAxis[2].data = [];
+  CHART_OPTION.yAxis[2].data = [];
+  CHART_OPTION.visualMap.max = 1;
+  PTMCounts = { };
+  PTMBarsTop = {
+    name: 'PTMBarsTop',
+    type: 'bar',
     xAxisIndex: 1,
     yAxisIndex: 1,
     data: [ ],
-    showSymbol: false,
-    smooth: 1,
-    smoothMonotone: 'x',
-    lineStyle: {
-      color: '#666666',
-      width: 1
+    itemStyle: {
+      color: '#6b6b6b'
     },
-    areaStyle: {
-      color: '#999999',
-      opacity: 0.5
+    large: true,
+    emphasis: {
+      disabled: true
+    }
+  };
+  PTMBarsRight = {
+    name: 'PTMBarsRight',
+    type: 'bar',
+    xAxisIndex: 2,
+    yAxisIndex: 2,
+    data: [ ],
+    itemStyle: {
+      color: '#6b6b6b'
+    },
+    large: true,
+    emphasis: {
+      disabled: true
     }
   };
   for (let residue in DATA[proteinAcc].residues) {
     DATA[proteinAcc].residues[residue].ptm.forEach(ptm => {
-      PTMStackedBars[ptm] = []
+      PTMCounts[ptm] = []
     });
-    PTMLine.data.push( DATA[proteinAcc].residues[residue].ptm.length );
+    PTMBarsTop.data.push( DATA[proteinAcc].residues[residue].ptm.length );
+    PTMBarsRight.data.push( DATA[proteinAcc].residues[residue].ptm.length );
   }
   for (let residue in DATA[proteinAcc].residues) {
     CHART_OPTION.xAxis[0].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
     CHART_OPTION.yAxis[0].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
     CHART_OPTION.xAxis[1].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
+    CHART_OPTION.yAxis[2].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
     let ptmCounts = {};
     DATA[proteinAcc].residues[residue].ptm.forEach(ptm => {
       if (ptmCounts[ptm]) {
@@ -263,11 +351,11 @@ function updateChart(proteinAcc) {
         ptmCounts[ptm] = 1;
       }
     });
-    for (let ptm of Object.keys(PTMStackedBars)) {
+    for (let ptm of Object.keys(PTMCounts)) {
       if (ptm in ptmCounts) {
-        PTMStackedBars[ptm].push(ptmCounts[ptm]);
+        PTMCounts[ptm].push(ptmCounts[ptm]);
       } else {
-        PTMStackedBars[ptm].push(0)
+        PTMCounts[ptm].push(0);
       }
     }
     for (let contactResidue of DATA[proteinAcc].residues[residue].contacts) {
@@ -275,39 +363,61 @@ function updateChart(proteinAcc) {
       let contactResidueNumber = parseInt(contactResidue.split("@")[1]);
       let residuePTM = DATA[proteinAcc].residues[residue].ptm;
       let contactResiduePTM = DATA[proteinAcc].residues[contactResidue].ptm;
-      if (residuePTM.length > 0 && contactResiduePTM.length > 0) {
+      if (residuePTM.length > 0 && contactResiduePTM.length > 0 && residueNumber > contactResidueNumber) {
         let PTMSimilarity = computePTMSimilarity(residuePTM, contactResiduePTM);
         CHART_OPTION.series[0].data.push([
-          residueNumber,
-          contactResidueNumber,
+          residueNumber - 1,
+          contactResidueNumber - 1,
           PTMSimilarity
+        ])
+      } else if ( residueNumber < contactResidueNumber ) {
+        CHART_OPTION.series[1].data.push([
+          residueNumber - 1,
+          contactResidueNumber - 1,
+          0
         ])
       }
     }
   }
-  cleanStackedBar();
+  toggleStackedBar( -1, -1 );
 }
 
-function cleanStackedBar() {
-  CHART_OPTION.series = CHART_OPTION.series.filter(s => !s.name.startsWith("PTMStackedBar"));
-  CHART_OPTION.series.push( PTMLine );
-  CHART.setOption(CHART_OPTION, { replaceMerge: [ 'series' ] } );
-}
-
-function addStackedBar() {
-  CHART_OPTION.series.splice( 1, 1 );
-  for (let ptm of Object.keys(PTMStackedBars)) {
-    CHART_OPTION.series.push({
-      name: "PTMStackedBar_" + ptm,
-      type: 'bar',
-      stack: 'total',
-      data: PTMStackedBars[ptm],
-      xAxisIndex: 1,
-      yAxisIndex: 1,
-      large: true
-    });
+function toggleStackedBar( zoomFactorX, zoomFactorY ) {
+  CHART_OPTION.series = CHART_OPTION.series.splice( 0, 2 );
+  if ( zoomFactorX !== -1 && zoomFactorX <= 30 ) {
+    for (let ptm of Object.keys(PTMCounts)) {
+      CHART_OPTION.series.push({
+        name: "PTMStackedBarTop_" + ptm,
+        type: 'bar',
+        stack: 'total',
+        data: PTMCounts[ptm],
+        xAxisIndex: 1,
+        yAxisIndex: 1,
+        large: false
+      });
+    }
+    CHART.setOption(CHART_OPTION, { replaceMerge: [ 'series' ] });
+  } else {
+    CHART_OPTION.series.push( PTMBarsTop );
+    CHART.setOption(CHART_OPTION, { replaceMerge: [ 'series' ] } );
   }
-  CHART.setOption(CHART_OPTION, { replaceMerge: [ 'series' ] });
+  if ( zoomFactorY !== -1 && zoomFactorY <= 30 ) {
+    for (let ptm of Object.keys(PTMCounts)) {
+      CHART_OPTION.series.push({
+        name: "PTMStackedBarRight_" + ptm,
+        type: 'bar',
+        stack: 'total',
+        data: PTMCounts[ptm],
+        xAxisIndex: 2,
+        yAxisIndex: 2,
+        large: false
+      });
+    }
+    CHART.setOption(CHART_OPTION, { replaceMerge: [ 'series' ] });
+  } else {
+    CHART_OPTION.series.push( PTMBarsRight );
+    CHART.setOption(CHART_OPTION, { replaceMerge: [ 'series' ] } );
+  }
 }
 
 var computePTMSimilarity = (riPTM, rjPTM) => {
@@ -319,7 +429,7 @@ function computePTMUnion(riPTM, rjPTM) {
   let unionSize = union.length;
   if (unionSize > CHART_OPTION.visualMap.max) {
     CHART_OPTION.visualMap.max = unionSize;
-    CHART_OPTION.visualMap.text = [CHART_OPTION.visualMap.max, CHART_OPTION.visualMap.min];
+    CHART_OPTION.visualMap.range = [ 1, CHART_OPTION.visualMap.max ];
   }
   return unionSize;
 }
@@ -329,7 +439,7 @@ function computePTMIntersection(riPTM, rjPTM) {
   let intersectionSize = intersection.length;
   if (intersectionSize > CHART_OPTION.visualMap.max) {
     CHART_OPTION.visualMap.max = intersectionSize;
-    CHART_OPTION.visualMap.text = [CHART_OPTION.visualMap.max, CHART_OPTION.visualMap.min];
+    CHART_OPTION.visualMap.range = [ 1, CHART_OPTION.visualMap.max ];
   }
   return intersectionSize;
 }
