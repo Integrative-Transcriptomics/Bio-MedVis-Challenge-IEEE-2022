@@ -1,6 +1,31 @@
 import { DATA } from "./data.js";
 
 var CHART;
+var OVERVIEW_CHART_OPTION = {
+  tooltip: {
+    trigger: "item",
+  },
+  grid: [
+    {
+      id: "ptmOverview",
+      width: "500px",
+      height: "500px",
+      // bottom: "870px",
+      // show: true,
+      // top: "50px",
+
+      // left: "50px",
+    },
+  ],
+  xAxis: {
+    type: "value",
+  },
+  yAxis: {
+    type: "category",
+    data: [],
+  },
+  series: [],
+};
 var CHART_OPTION = {
   grid: [
     // {
@@ -101,16 +126,27 @@ var CHART_OPTION = {
     // },
   ],
 };
+var DataAll = {};
 var PTMStackedBars = {};
 var PTMLine = {};
 var PTMAreaChart = {};
 var OverallPTMs = {};
+var allPTMS = [];
+
+// TODO: Get overall PTMs and show a stacked barchart.
+// TODO: Histogram over the PTMs to compare ortholog genes.
+// TODO filter out the artefacts class.
 
 window.onload = (_) => {
   CHART = echarts.init(document.getElementById("chartContainer"), { renderer: "canvas" });
+
   document.getElementById("accSelect").onchange = (event) => {
     if (event.isTrusted && event.type == "change") {
-      updateChart(document.getElementById("accSelect").value);
+      if (document.getElementById("accSelect").value != "Overview") {
+        updateChart(document.getElementById("accSelect").value);
+      } else {
+        createOverviewChart();
+      }
     }
   };
   CHART.on("datazoom", (event) => {
@@ -152,7 +188,101 @@ window.onload = (_) => {
       cleanStackedBar();
     }
   });
+
+  DataAll = preprocessData();
+  console.log(DataAll);
 };
+
+function createOverviewChart() {
+  OVERVIEW_CHART_OPTION.yAxis.data = [];
+  // for (let acc of Object.keys(DataAll)) {
+  // let protName = DataAll[acc]
+  let firstPTM = true;
+  for (let ptmId of allPTMS) {
+    let ptmLocalCount = [];
+    for (let acc of Object.keys(DataAll)) {
+      if (firstPTM) {
+        OVERVIEW_CHART_OPTION.yAxis.data.push(acc);
+      }
+      ptmLocalCount.push(DataAll[acc]["ptmAll"][ptmId] || 0);
+    }
+    let tempSeriesObject = {
+      name: ptmId,
+      type: "bar",
+      stack: "total",
+      label: {
+        show: false,
+      },
+      emphasis: {
+        focus: "series",
+      },
+      data: ptmLocalCount,
+    };
+    OVERVIEW_CHART_OPTION.series.push(tempSeriesObject);
+    firstPTM = false;
+
+    // }
+  }
+  OVERVIEW_CHART_OPTION.series.sort((a, b) => sum(a.data) - sum(b.data));
+  OVERVIEW_CHART_OPTION.series = OVERVIEW_CHART_OPTION.series;
+  CHART.setOption(OVERVIEW_CHART_OPTION);
+  console.log(DataAll);
+  console.log(OVERVIEW_CHART_OPTION);
+}
+function sum(array) {
+  return array.reduce((a, b) => a + b, 0);
+}
+function preprocessData() {
+  var tempData = {};
+  // console.log(Object.keys(DATA));
+  for (let proteinAcc of Object.keys(DATA)) {
+    tempData[proteinAcc] = {};
+    OverallPTMs = [];
+    // console.log(proteinAcc);
+    for (let residue in DATA[proteinAcc].residues) {
+      DATA[proteinAcc].residues[residue].ptm.forEach((ptm) => {
+        PTMStackedBars[ptm] = [];
+        PTMAreaChart[ptm] = [];
+      });
+    }
+
+    for (let residue in DATA[proteinAcc].residues) {
+      let ptmCounts = {};
+      DATA[proteinAcc].residues[residue].ptm.forEach((ptm) => {
+        if (!allPTMS.includes(ptm)) {
+          allPTMS.push(ptm);
+        }
+        if (ptmCounts[ptm]) {
+          ptmCounts[ptm]++;
+        } else {
+          ptmCounts[ptm] = 1;
+        }
+        if (OverallPTMs[ptm]) {
+          OverallPTMs[ptm]++;
+        } else {
+          OverallPTMs[ptm] = 1;
+        }
+      });
+      for (let ptm of Object.keys(PTMStackedBars)) {
+        if (ptm in ptmCounts) {
+          PTMStackedBars[ptm].push(ptmCounts[ptm]);
+          PTMAreaChart[ptm].push(ptmCounts[ptm]);
+        } else {
+          PTMStackedBars[ptm].push(0);
+          PTMAreaChart[ptm].push(0);
+        }
+      }
+    }
+    Object.assign(tempData[proteinAcc], {
+      ptmAll: OverallPTMs,
+      StackedBars: PTMStackedBars,
+      AreaChart: PTMAreaChart,
+    });
+    // tempData[proteinAcc] = ;
+  }
+  allPTMS.sort((a, b) => a.split("]")[1].localeCompare(b.split("]")[1]));
+  return tempData;
+}
 
 function updateChart(proteinAcc) {
   CHART_OPTION.xAxis[0].data = [];
