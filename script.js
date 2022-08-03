@@ -4,13 +4,37 @@ var CHART;
 var WIDTH = window.innerWidth;
 var HEIGHT = window.innerHeight;
 var PROGRESSIVE_RENDERING_VALUE = 0;
+var STRUCTURE_ENCODING = {
+  "unstructured": 0,
+  "HELX": 1,
+  "BEND": 2,
+  "TURN": 3,
+  "STRN": 4
+};
+var STRUCTURE_COLOR_ENCODING = {
+  0: '#5E503F',
+  1: '#DC493A',
+  2: '#4C230A',
+  3: '#A9927D',
+  4: '#4392F1'
+};
 var CHART_OPTION = {
   title: [
     {
       show: true,
-      top: '4px',
+      top: '2px',
       left: '100px',
-      text: 'PTM Set Intersection Size',
+      text: 'PTM Set Intersection Size:',
+      textStyle: {
+        fontSize: 12
+      },
+      textAlign: 'left'
+    },
+    {
+      show: true,
+      top: '2px',
+      left: HEIGHT * 0.65 + 150 + "px",
+      text: 'Secondary Structure Type:',
       textStyle: {
         fontSize: 12
       },
@@ -50,6 +74,20 @@ var CHART_OPTION = {
       left: HEIGHT * 0.15 + HEIGHT * 0.65 + 180 + "px",
       show: true,
       backgroundColor: "#FAFAFA"
+    },
+    {
+      id: "structureTop",
+      width: HEIGHT * 0.65 + "px",
+      height: "18px",
+      left: "100px",
+      bottom: HEIGHT * 0.65 + 80 + "px"
+    },
+    {
+      id: "structureRight",
+      width: "18px",
+      height: HEIGHT * 0.65 + "px",
+      left: HEIGHT * 0.65 + 100 + "px",
+      bottom: "80px"
     }
   ],
   xAxis: [
@@ -93,19 +131,31 @@ var CHART_OPTION = {
       type: 'category',
       data: [],
       gridIndex: 3,
-      axisTick: {
-        show: false
-      },
-      axisLabel: {
-        show: false
-      },
       name: 'PTM',
       nameLocation: 'middle',
-      nameGap: 40,
+      nameGap: 120,
       nameTextStyle: {
         fontWeight: 'bold',
         fontSize: 14
+      },
+      position: "top",
+      axisLabel: {
+        rotate: -40
       }
+    },
+    {
+      id: "structureTopX",
+      type: "category",
+      data: [ ],
+      gridIndex: 4,
+      show: false
+    },
+    {
+      id: "structureRightX",
+      type: "category",
+      data: [ 0 ],
+      gridIndex: 5,
+      show: false
     }
   ],
   yAxis: [
@@ -153,6 +203,21 @@ var CHART_OPTION = {
       inverse: true,
       gridIndex: 3,
       show: false
+    },
+    {
+      id: "structureTopY",
+      type: "category",
+      data: [ 0 ],
+      gridIndex: 4,
+      show: false
+    },
+    {
+      id: "structureRightY",
+      type: "category",
+      data: [ ],
+      gridIndex: 5,
+      show: false,
+      inverse: true
     }
   ],
   axisPointer: {
@@ -198,13 +263,37 @@ var CHART_OPTION = {
       yAxisIndex: 3
     },
     {
+      type: 'inside',
+      show: false,
+      xAxisIndex: 4
+    },
+    {
+      type: 'inside',
+      show: false,
+      yAxisIndex: 5
+    },
+    {
       type: 'slider',
       show: true,
       xAxisIndex: 3,
       left: HEIGHT * 0.15 + HEIGHT * 0.65 + 180 + "px",
       right: "100px",
       bottom: "60px",
-      height: "20px"
+      height: "20px",
+      fillerColor: 'rgba(28, 48, 65, 0.5)',
+      handleIcon: 'path://M30.9,53.2C16.8,53.2,5.3,41.7,5.3,27.6S16.8,2,30.9,2C45,2,56.4,13.5,56.4,27.6S45,53.2,30.9,53.2z M30.9,3.5C17.6,3.5,6.8,14.4,6.8,27.6c0,13.3,10.8,24.1,24.101,24.1C44.2,51.7,55,40.9,55,27.6C54.9,14.4,44.1,3.5,30.9,3.5z M36.9,35.8c0,0.601-0.4,1-0.9,1h-1.3c-0.5,0-0.9-0.399-0.9-1V19.5c0-0.6,0.4-1,0.9-1H36c0.5,0,0.9,0.4,0.9,1V35.8z M27.8,35.8 c0,0.601-0.4,1-0.9,1h-1.3c-0.5,0-0.9-0.399-0.9-1V19.5c0-0.6,0.4-1,0.9-1H27c0.5,0,0.9,0.4,0.9,1L27.8,35.8L27.8,35.8z',
+      handleStyle: {
+        color: 'rgba(28, 48, 65, 1.0)'
+      },
+      moveHandleSize: 2,
+      moveHandleStyle: {
+        color: 'rgba(28, 48, 65, 1.0)'
+      },
+      emphasis: {
+        moveHandleStyle: {
+          color: 'rgba(37, 71, 101, 0.8)'
+        }
+      }
     }
   ],
   visualMap: [
@@ -240,6 +329,21 @@ var CHART_OPTION = {
           return Math.round(value);
         }
       }
+    },
+    {
+      type: 'piecewise',
+      dimension: 2,
+      seriesIndex: [ 3, 4 ],
+      pieces: [
+        { value: STRUCTURE_ENCODING[ "unstructured" ], label: "Unstructured", color: STRUCTURE_COLOR_ENCODING[ STRUCTURE_ENCODING[ "unstructured" ] ] },
+        { value: STRUCTURE_ENCODING[ "BEND" ], label: "Bend", color: STRUCTURE_COLOR_ENCODING[ STRUCTURE_ENCODING[ "BEND" ] ] },
+        { value: STRUCTURE_ENCODING[ "TURN" ], label: "Turn", color: STRUCTURE_COLOR_ENCODING[ STRUCTURE_ENCODING[ "TURN" ] ] },
+        { value: STRUCTURE_ENCODING[ "HELX" ], label: "Helix", color: STRUCTURE_COLOR_ENCODING[ STRUCTURE_ENCODING[ "HELX" ] ] },
+        { value: STRUCTURE_ENCODING[ "STRN" ], label: "Sheet", color: STRUCTURE_COLOR_ENCODING[ STRUCTURE_ENCODING[ "STRN" ] ] } 
+      ],
+      top: '0px',
+      left: HEIGHT * 0.65 + 330 + "px",
+      orient: 'horizontal'
     }
   ],
   series: [
@@ -285,6 +389,28 @@ var CHART_OPTION = {
       emphasis: {
         disabled: true
       }
+    },
+    {
+      name: 'StructureTop',
+      type: 'heatmap',
+      data: [ ],
+      xAxisIndex: 4,
+      yAxisIndex: 4,
+      progressive: PROGRESSIVE_RENDERING_VALUE,
+      emphasis: {
+        disabled: true
+      }
+    },
+    {
+      name: 'StructureRight',
+      type: 'heatmap',
+      data: [ ],
+      xAxisIndex: 5,
+      yAxisIndex: 5,
+      progressive: PROGRESSIVE_RENDERING_VALUE,
+      emphasis: {
+        disabled: true
+      }
     }
   ]
 };
@@ -323,6 +449,18 @@ window.onload = _ => {
           startValue: event.batch[1].startValue,
           endValue: event.batch[1].endValue
         });
+        CHART.dispatchAction({
+          type: 'dataZoom',
+          dataZoomIndex: 3,
+          startValue: event.batch[0].startValue,
+          endValue: event.batch[0].endValue
+        });
+        CHART.dispatchAction({
+          type: 'dataZoom',
+          dataZoomIndex: 4,
+          startValue: event.batch[1].startValue,
+          endValue: event.batch[1].endValue
+        });
       } else {
         CHART.dispatchAction({
           type: 'dataZoom',
@@ -342,24 +480,40 @@ window.onload = _ => {
           start: event.batch[1].start,
           end: event.batch[1].end
         });
+        CHART.dispatchAction({
+          type: 'dataZoom',
+          dataZoomIndex: 3,
+          start: event.batch[0].start,
+          end: event.batch[0].end
+        });
+        CHART.dispatchAction({
+          type: 'dataZoom',
+          dataZoomIndex: 4,
+          start: event.batch[1].start,
+          end: event.batch[1].end
+        });
       }
     }
   });
 };
 
 function updateChart(proteinAcc) {
-  CHART_OPTION.series = [ CHART_OPTION.series[ 0 ], CHART_OPTION.series[ 1 ], CHART_OPTION.series[ 2 ] ];
-  CHART_OPTION.xAxis[0].data = [];
-  CHART_OPTION.yAxis[0].data = [];
+  CHART_OPTION.series = [ CHART_OPTION.series[ 0 ], CHART_OPTION.series[ 1 ], CHART_OPTION.series[ 2 ], CHART_OPTION.series[ 3 ], CHART_OPTION.series[ 4 ] ];
   CHART_OPTION.series[0].data = [];
   CHART_OPTION.series[1].data = [];
   CHART_OPTION.series[2].data = [];
+  CHART_OPTION.series[3].data = [];
+  CHART_OPTION.series[4].data = [];
+  CHART_OPTION.xAxis[0].data = [];
+  CHART_OPTION.yAxis[0].data = [];
   CHART_OPTION.xAxis[1].data = [];
   CHART_OPTION.yAxis[1].data = [];
   CHART_OPTION.xAxis[2].data = [];
   CHART_OPTION.yAxis[2].data = [];
   CHART_OPTION.xAxis[3].data = [];
   CHART_OPTION.yAxis[3].data = [];
+  CHART_OPTION.xAxis[4].data = [];
+  CHART_OPTION.yAxis[5].data = [];
   CHART_OPTION.visualMap[ 0 ].max = 1;
   PTMCounts = { };
   PTMBarsTop = {
@@ -404,6 +558,8 @@ function updateChart(proteinAcc) {
     CHART_OPTION.yAxis[0].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
     CHART_OPTION.yAxis[2].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
     CHART_OPTION.yAxis[3].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
+    CHART_OPTION.xAxis[4].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
+    CHART_OPTION.yAxis[5].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
     PTMBarsTop.data.push( DATA[proteinAcc].residues[residue].ptm.length );
     PTMBarsRight.data.push( DATA[proteinAcc].residues[residue].ptm.length );
     let residuePTMCounts = {};
@@ -421,8 +577,10 @@ function updateChart(proteinAcc) {
         PTMCounts[ptm].push(0);
       }
     }
+    let residueNumber = parseInt(residue.split("@")[1]);
+    CHART_OPTION.series[ 3 ].data.push( [ residueNumber - 1, 0, STRUCTURE_ENCODING[ DATA[proteinAcc].residues[residue].structureInformation.structure_group ] ] );
+    CHART_OPTION.series[ 4 ].data.push( [ 0, residueNumber - 1, STRUCTURE_ENCODING[ DATA[proteinAcc].residues[residue].structureInformation.structure_group ] ] );
     for (let contactResidue of DATA[proteinAcc].residues[residue].contacts) {
-      let residueNumber = parseInt(residue.split("@")[1]);
       let contactResidueNumber = parseInt(contactResidue.split("@")[1]);
       let residuePTM = DATA[proteinAcc].residues[residue].ptm;
       let contactResiduePTM = DATA[proteinAcc].residues[contactResidue].ptm;
