@@ -5,7 +5,7 @@ var WIDTH = window.innerWidth;
 var HEIGHT = window.innerHeight;
 var CHART_OPTION = {
   title: [
-    {
+    /*{
       show: true,
       bottom: '20px',
       left: '980px',
@@ -14,7 +14,7 @@ var CHART_OPTION = {
         fontSize: 14
       },
       textAlign: 'left'
-    }
+    }*/
   ],
   grid: [
     {
@@ -39,6 +39,16 @@ var CHART_OPTION = {
       height: HEIGHT * 0.65 + "px",
       bottom: "80px",
       left: HEIGHT * 0.65 + 120 + "px"
+    },
+    {
+      id: "presenceAbsenceMap",
+      // width: HEIGHT * 0.65 + "px",
+      height: HEIGHT * 0.65 + "px",
+      bottom: "80px",
+      right: "100px",
+      left: HEIGHT * 0.15 + HEIGHT * 0.65 + 180 + "px",
+      show: true,
+      backgroundColor: "#FAFAFA"
     }
   ],
   xAxis: [
@@ -68,12 +78,25 @@ var CHART_OPTION = {
       gridIndex: 2,
       name: 'No. PTMs',
       nameLocation: 'middle',
-      nameGap: 60,
+      nameGap: 40,
       nameTextStyle: {
         fontWeight: 'bold',
         fontSize: 14
       },
       minInterval: 1
+    },
+    {
+      id: "presenceAbsenceMapX",
+      type: 'category',
+      data: [],
+      gridIndex: 3,
+      name: 'PTM',
+      nameLocation: 'middle',
+      nameGap: 40,
+      nameTextStyle: {
+        fontWeight: 'bold',
+        fontSize: 14
+      }
     }
   ],
   yAxis: [
@@ -111,13 +134,21 @@ var CHART_OPTION = {
       show: false,
       gridIndex: 2,
       inverse: true
+    },
+    {
+      id: "presenceAbsenceMapY",
+      type: 'category',
+      data: [],
+      inverse: true,
+      gridIndex: 3,
+      show: false
     }
   ],
   axisPointer: {
     show: true,
     triggerOn: 'click',
     z: 5,
-    triggerTooltip: true,
+    triggerTooltip: false,
     link: [
       {
         xAxisIndex: [ 0, 1 ]
@@ -127,14 +158,12 @@ var CHART_OPTION = {
       }
     ]
   },
-  /*tooltip: {
-    show: true,
-    position: [ 900, 50 ],
-    extraCssText: 'height: 800px; width: 950px'
-  },*/
+  tooltip: {
+    show: false
+  },
   toolbox: {
     feature: {
-      myTool1: {
+      /*myTool1: {
         show: true,
         title: 'Display Mode: Intersection',
         icon: 'path://M432.45,595.444c0,2.177-4.661,6.82-11.305,6.82c-6.475,0-11.306-4.567-11.306-6.82s4.852-6.812,11.306-6.812C427.841,588.632,432.452,593.191,432.45,595.444L432.45,595.444z M421.155,589.876c-3.009,0-5.448,2.495-5.448,5.572s2.439,5.572,5.448,5.572c3.01,0,5.449-2.495,5.449-5.572C426.604,592.371,424.165,589.876,421.155,589.876L421.155,589.876z M421.146,591.891c-1.916,0-3.47,1.589-3.47,3.549c0,1.959,1.554,3.548,3.47,3.548s3.469-1.589,3.469-3.548C424.614,593.479,423.062,591.891,421.146,591.891L421.146,591.891zM421.146,591.891',
@@ -158,7 +187,7 @@ var CHART_OPTION = {
           }
 
         }
-      },
+      },*/
       dataZoom: {
         xAxisIndex: 0,
         yAxisIndex: 0
@@ -177,38 +206,40 @@ var CHART_OPTION = {
       yAxisIndex: 2
     }
   ],
-  visualMap: {
-    min: 0,
-    max: 1,
-    range: [ 1, 1 ],
-    dimension: 2,
-    seriesIndex: [ 0 ],
-    hoverLink: true,
-    inverse: false,
-    orient: 'horizontal',
-    itemHeight: 800,
-    bottom: '60px',
-    right: '80px',
-    textStyle: {
-      color: '#607196',
-      fontSize: 12
-    },
-    precision: 0,
-    calculable: true,
-    inRange: {
-      color: ['#61ACDA', '#C662DA', '#DA6262']
-    },
-    outOfRange: {
-      color: [ '#DFD9E2' ]
-    },
-    formatter: (value) => {
-      if ( value == 0 ) {
-        return "In contact (Cα↔ < 5Å); Modified, but no joint PTMs";
-      } else {
-        return Math.round(value);
+  visualMap: [
+    {
+      min: 0,
+      max: 1,
+      range: [ 1, 1 ],
+      dimension: 2,
+      seriesIndex: 0,
+      hoverLink: true,
+      inverse: false,
+      orient: 'horizontal',
+      itemHeight: 800,
+      top: '10px',
+      left: 'left',
+      textStyle: {
+        color: '#607196',
+        fontSize: 12
+      },
+      precision: 0,
+      calculable: true,
+      inRange: {
+        color: [ '#5A0FFD', '#FF2A00' ]
+      },
+      outOfRange: {
+        color: [ '#DFD9E2' ]
+      },
+      formatter: (value) => {
+        if ( value == 0 ) {
+          return "In contact (Cα↔ < 5Å); Modified, but no joint PTMs";
+        } else {
+          return Math.round(value);
+        }
       }
     }
-  },
+  ],
   series: [
     {
       name: 'PTMContactMap',
@@ -219,7 +250,6 @@ var CHART_OPTION = {
         borderWidth: 0.1
       },
       emphasis: {
-        disabled: true
       }
     },
     {
@@ -232,8 +262,19 @@ var CHART_OPTION = {
         color: '#B5ACBA'
       },
       emphasis: {
-        disabled: true
       }
+    },
+    {
+      name: 'PresenceAbsenceMap',
+      type: 'heatmap',
+      data: [ ],
+      itemStyle: {
+        borderColor: '#CCCCCC',
+        borderWidth: 0.1,
+        color: '#6b6b6b'
+      },
+      xAxisIndex: 3,
+      yAxisIndex: 3
     }
   ]
 };
@@ -293,15 +334,19 @@ window.onload = _ => {
 };
 
 function updateChart(proteinAcc) {
-  CHART_OPTION.series = [ CHART_OPTION.series[ 0 ], CHART_OPTION.series[ 1 ] ];
+  CHART_OPTION.series = [ CHART_OPTION.series[ 0 ], CHART_OPTION.series[ 1 ], CHART_OPTION.series[ 2 ] ];
   CHART_OPTION.xAxis[0].data = [];
   CHART_OPTION.yAxis[0].data = [];
   CHART_OPTION.series[0].data = [];
+  CHART_OPTION.series[1].data = [];
+  CHART_OPTION.series[2].data = [];
   CHART_OPTION.xAxis[1].data = [];
   CHART_OPTION.yAxis[1].data = [];
   CHART_OPTION.xAxis[2].data = [];
   CHART_OPTION.yAxis[2].data = [];
-  CHART_OPTION.visualMap.max = 1;
+  CHART_OPTION.xAxis[3].data = [];
+  CHART_OPTION.yAxis[3].data = [];
+  CHART_OPTION.visualMap[ 0 ].max = 1;
   PTMCounts = { };
   PTMBarsTop = {
     name: 'PTMBarsTop',
@@ -333,16 +378,17 @@ function updateChart(proteinAcc) {
   };
   for (let residue in DATA[proteinAcc].residues) {
     DATA[proteinAcc].residues[residue].ptm.forEach(ptm => {
-      PTMCounts[ptm] = []
+      PTMCounts[ptm] = [ ];
     });
     PTMBarsTop.data.push( DATA[proteinAcc].residues[residue].ptm.length );
     PTMBarsRight.data.push( DATA[proteinAcc].residues[residue].ptm.length );
   }
   for (let residue in DATA[proteinAcc].residues) {
     CHART_OPTION.xAxis[0].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
-    CHART_OPTION.yAxis[0].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
     CHART_OPTION.xAxis[1].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
+    CHART_OPTION.yAxis[0].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
     CHART_OPTION.yAxis[2].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
+    CHART_OPTION.yAxis[3].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
     let ptmCounts = {};
     DATA[proteinAcc].residues[residue].ptm.forEach(ptm => {
       if (ptmCounts[ptm]) {
@@ -379,12 +425,26 @@ function updateChart(proteinAcc) {
       }
     }
   }
+  let PTMNames = Object.keys( PTMCounts );
+  CHART_OPTION.xAxis[3].data = PTMNames;
+  for (let residueIndex = 0; residueIndex < Object.keys( DATA[proteinAcc].residues ).length; residueIndex++ ) {
+    for( let PTMIndex = 0; PTMIndex < PTMNames.length; PTMIndex++ ) {
+      let PTMCount = PTMCounts[ PTMNames[ PTMIndex ] ][ residueIndex ];
+      if ( PTMCount > 0 ) {
+        CHART_OPTION.series[2].data.push([
+          PTMIndex,
+          residueIndex,
+          PTMCount
+        ])
+      }
+    }
+  }
   toggleStackedBar( -1, -1 );
 }
 
 function toggleStackedBar( zoomFactorX, zoomFactorY ) {
-  CHART_OPTION.series = CHART_OPTION.series.splice( 0, 2 );
-  if ( zoomFactorX !== -1 && zoomFactorX <= 30 ) {
+  CHART_OPTION.series = CHART_OPTION.series.splice( 0, 3 );
+  if ( zoomFactorX !== -1 && zoomFactorX <= 0 ) {
     for (let ptm of Object.keys(PTMCounts)) {
       CHART_OPTION.series.push({
         name: "PTMStackedBarTop_" + ptm,
@@ -401,7 +461,7 @@ function toggleStackedBar( zoomFactorX, zoomFactorY ) {
     CHART_OPTION.series.push( PTMBarsTop );
     CHART.setOption(CHART_OPTION, { replaceMerge: [ 'series' ] } );
   }
-  if ( zoomFactorY !== -1 && zoomFactorY <= 30 ) {
+  if ( zoomFactorY !== -1 && zoomFactorY <= 0 ) {
     for (let ptm of Object.keys(PTMCounts)) {
       CHART_OPTION.series.push({
         name: "PTMStackedBarRight_" + ptm,
@@ -437,9 +497,9 @@ function computePTMUnion(riPTM, rjPTM) {
 function computePTMIntersection(riPTM, rjPTM) {
   let intersection = riPTM.filter(v => rjPTM.includes(v));
   let intersectionSize = intersection.length;
-  if (intersectionSize > CHART_OPTION.visualMap.max) {
-    CHART_OPTION.visualMap.max = intersectionSize;
-    CHART_OPTION.visualMap.range = [ 1, CHART_OPTION.visualMap.max ];
+  if (intersectionSize > CHART_OPTION.visualMap[ 0 ].max) {
+    CHART_OPTION.visualMap[ 0 ].max = intersectionSize;
+    CHART_OPTION.visualMap[ 0 ].range = [ 1, CHART_OPTION.visualMap[ 0 ].max ];
   }
   return intersectionSize;
 }
