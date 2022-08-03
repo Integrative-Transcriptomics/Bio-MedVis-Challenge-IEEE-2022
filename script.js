@@ -3,6 +3,7 @@ import { DATA } from './data.js';
 var CHART;
 var WIDTH = window.innerWidth;
 var HEIGHT = window.innerHeight;
+var PROGRESSIVE_RENDERING_VALUE = 0;
 var CHART_OPTION = {
   title: [
     {
@@ -162,6 +163,7 @@ var CHART_OPTION = {
     show: false
   },
   toolbox: {
+    left: 'left',
     feature: {
       dataZoom: {
         xAxisIndex: 0,
@@ -230,7 +232,9 @@ var CHART_OPTION = {
         borderColor: '#CCCCCC',
         borderWidth: 0.1
       },
+      progressive: PROGRESSIVE_RENDERING_VALUE,
       emphasis: {
+        disabled: true
       }
     },
     {
@@ -242,7 +246,9 @@ var CHART_OPTION = {
         borderWidth: 0.1,
         color: '#B5ACBA'
       },
+      progressive: PROGRESSIVE_RENDERING_VALUE,
       emphasis: {
+        disabled: true
       }
     },
     {
@@ -255,7 +261,11 @@ var CHART_OPTION = {
         color: '#6b6b6b'
       },
       xAxisIndex: 3,
-      yAxisIndex: 3
+      yAxisIndex: 3,
+      progressive: PROGRESSIVE_RENDERING_VALUE,
+      emphasis: {
+        disabled: true
+      }
     }
   ]
 };
@@ -344,6 +354,7 @@ function updateChart(proteinAcc) {
       color: '#6b6b6b'
     },
     large: true,
+    //progressive: PROGRESSIVE_RENDERING_VALUE,
     emphasis: {
       disabled: true
     }
@@ -358,6 +369,7 @@ function updateChart(proteinAcc) {
       color: '#6b6b6b'
     },
     large: true,
+    //progressive: PROGRESSIVE_RENDERING_VALUE,
     emphasis: {
       disabled: true
     }
