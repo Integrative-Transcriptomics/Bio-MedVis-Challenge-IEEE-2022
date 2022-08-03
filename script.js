@@ -8,7 +8,7 @@ var CHART_OPTION = {
   title: [
     {
       show: true,
-      top: '20px',
+      top: '4px',
       left: '100px',
       text: 'PTM Set Intersection Size',
       textStyle: {
@@ -64,7 +64,8 @@ var CHART_OPTION = {
       nameTextStyle: {
         fontWeight: 'bold',
         fontSize: 14
-      }
+      },
+      splitNumber: 10
     },
     {
       id: "ptmBarsTopX",
@@ -84,13 +85,20 @@ var CHART_OPTION = {
         fontWeight: 'bold',
         fontSize: 14
       },
-      minInterval: 1
+      minInterval: 25,
+      splitNumber: 4
     },
     {
       id: "presenceAbsenceMapX",
       type: 'category',
       data: [],
       gridIndex: 3,
+      axisTick: {
+        show: false
+      },
+      axisLabel: {
+        show: false
+      },
       name: 'PTM',
       nameLocation: 'middle',
       nameGap: 40,
@@ -113,7 +121,8 @@ var CHART_OPTION = {
       nameTextStyle: {
         fontWeight: 'bold',
         fontSize: 14
-      }
+      },
+      splitNumber: 10
     },
     {
       id: "ptmBarsTopY",
@@ -126,7 +135,8 @@ var CHART_OPTION = {
         fontWeight: 'bold',
         fontSize: 14
       },
-      minInterval: 1
+      minInterval: 25,
+      splitNumber: 4
     },
     {
       id: "ptmBarsRightY",
@@ -186,6 +196,15 @@ var CHART_OPTION = {
       type: 'inside',
       show: false,
       yAxisIndex: 3
+    },
+    {
+      type: 'slider',
+      show: true,
+      xAxisIndex: 3,
+      left: HEIGHT * 0.15 + HEIGHT * 0.65 + 180 + "px",
+      right: "100px",
+      bottom: "60px",
+      height: "20px"
     }
   ],
   visualMap: [
@@ -199,8 +218,8 @@ var CHART_OPTION = {
       inverse: false,
       orient: 'horizontal',
       itemHeight: HEIGHT * 0.65 - 180,
-      itemWidth: 15,
-      top: '15px',
+      itemWidth: 12,
+      top: '0px',
       left: '280px',
       textStyle: {
         color: '#607196',
@@ -272,7 +291,6 @@ var CHART_OPTION = {
 var PTMCounts = {};
 var PTMBarsTop = { };
 var PTMBarsRight = { };
-var PTMSimilarityState = 'intersection';
 
 window.onload = _ => {
   CHART = echarts.init(document.getElementById("chartContainer"), { "renderer": "svg" });
@@ -378,26 +396,27 @@ function updateChart(proteinAcc) {
     DATA[proteinAcc].residues[residue].ptm.forEach(ptm => {
       PTMCounts[ptm] = [ ];
     });
-    PTMBarsTop.data.push( DATA[proteinAcc].residues[residue].ptm.length );
-    PTMBarsRight.data.push( DATA[proteinAcc].residues[residue].ptm.length );
   }
+
   for (let residue in DATA[proteinAcc].residues) {
     CHART_OPTION.xAxis[0].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
     CHART_OPTION.xAxis[1].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
     CHART_OPTION.yAxis[0].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
     CHART_OPTION.yAxis[2].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
     CHART_OPTION.yAxis[3].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
-    let ptmCounts = {};
+    PTMBarsTop.data.push( DATA[proteinAcc].residues[residue].ptm.length );
+    PTMBarsRight.data.push( DATA[proteinAcc].residues[residue].ptm.length );
+    let residuePTMCounts = {};
     DATA[proteinAcc].residues[residue].ptm.forEach(ptm => {
-      if (ptmCounts[ptm]) {
-        ptmCounts[ptm]++;
+      if (residuePTMCounts[ptm]) {
+        residuePTMCounts[ptm]++;
       } else {
-        ptmCounts[ptm] = 1;
+        residuePTMCounts[ptm] = 1;
       }
     });
     for (let ptm of Object.keys(PTMCounts)) {
-      if (ptm in ptmCounts) {
-        PTMCounts[ptm].push(ptmCounts[ptm]);
+      if (ptm in residuePTMCounts) {
+        PTMCounts[ptm].push(residuePTMCounts[ptm]);
       } else {
         PTMCounts[ptm].push(0);
       }
@@ -423,8 +442,11 @@ function updateChart(proteinAcc) {
       }
     }
   }
+  CHART_OPTION.series.push( PTMBarsTop );
+  CHART_OPTION.series.push( PTMBarsRight );
+
   let PTMNames = Object.keys( PTMCounts );
-  CHART_OPTION.xAxis[3].data = PTMNames;
+  CHART_OPTION.xAxis[3].data = PTMNames.map( s => s.split( "]" )[ 1 ] );
   for (let residueIndex = 0; residueIndex < Object.keys( DATA[proteinAcc].residues ).length; residueIndex++ ) {
     for( let PTMIndex = 0; PTMIndex < PTMNames.length; PTMIndex++ ) {
       let PTMCount = PTMCounts[ PTMNames[ PTMIndex ] ][ residueIndex ];
@@ -437,8 +459,9 @@ function updateChart(proteinAcc) {
       }
     }
   }
-  CHART_OPTION.series.push( PTMBarsTop );
-  CHART_OPTION.series.push( PTMBarsRight );
+
+
+
   CHART.setOption(CHART_OPTION, { replaceMerge: [ 'series' ] } );
 }
 
