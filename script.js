@@ -179,6 +179,11 @@ var CHART_OPTION = {
       type: 'inside',
       show: false,
       yAxisIndex: 2
+    },
+    {
+      type: 'inside',
+      show: false,
+      yAxisIndex: 3
     }
   ],
   visualMap: [
@@ -270,8 +275,6 @@ window.onload = _ => {
     if ( event.dataZoomIndex !== undefined ) {
       return;
     }
-    let zoomFactorX = -1;
-    let zoomFactorY = -1;
     if (event.batch[0].dataZoomId == '\x00_ec_\x00toolbox-dataZoom_xAxis0' && event.batch[1].dataZoomId == '\x00_ec_\x00toolbox-dataZoom_yAxis0') {
       if (event.batch[0].startValue && event.batch[0].endValue && event.batch[1].startValue && event.batch[1].endValue) {
         CHART.dispatchAction({
@@ -280,14 +283,18 @@ window.onload = _ => {
           startValue: event.batch[0].startValue,
           endValue: event.batch[0].endValue
         });
-        zoomFactorX = event.batch[0].endValue - event.batch[0].startValue;
         CHART.dispatchAction({
           type: 'dataZoom',
           dataZoomIndex: 1,
           startValue: event.batch[1].startValue,
           endValue: event.batch[1].endValue
         });
-        zoomFactorY = event.batch[1].endValue - event.batch[1].startValue;
+        CHART.dispatchAction({
+          type: 'dataZoom',
+          dataZoomIndex: 2,
+          startValue: event.batch[1].startValue,
+          endValue: event.batch[1].endValue
+        });
       } else {
         CHART.dispatchAction({
           type: 'dataZoom',
@@ -295,17 +302,20 @@ window.onload = _ => {
           start: event.batch[0].start,
           end: event.batch[0].end
         });
-        zoomFactorX = ((event.batch[0].end - event.batch[0].start) / 100) * CHART_OPTION.xAxis[0].data.length;
         CHART.dispatchAction({
           type: 'dataZoom',
           dataZoomIndex: 1,
           start: event.batch[1].start,
           end: event.batch[1].end
         });
-        zoomFactorY = ((event.batch[1].end - event.batch[1].start) / 100) * CHART_OPTION.yAxis[2].data.length;
+        CHART.dispatchAction({
+          type: 'dataZoom',
+          dataZoomIndex: 2,
+          start: event.batch[1].start,
+          end: event.batch[1].end
+        });
       }
     }
-    toggleStackedBar( zoomFactorX, zoomFactorY );
   });
 };
 
