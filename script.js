@@ -5,16 +5,16 @@ var WIDTH = window.innerWidth;
 var HEIGHT = window.innerHeight;
 var CHART_OPTION = {
   title: [
-    /*{
+    {
       show: true,
-      bottom: '20px',
-      left: '980px',
-      text: 'Set Intersection Size of PTMs',
+      top: '20px',
+      left: '100px',
+      text: 'PTM Set Intersection Size',
       textStyle: {
-        fontSize: 14
+        fontSize: 12
       },
       textAlign: 'left'
-    }*/
+    }
   ],
   grid: [
     {
@@ -216,12 +216,13 @@ var CHART_OPTION = {
       hoverLink: true,
       inverse: false,
       orient: 'horizontal',
-      itemHeight: 800,
-      top: '10px',
-      left: 'left',
+      itemHeight: HEIGHT * 0.65 - 180,
+      itemWidth: 15,
+      top: '15px',
+      left: '280px',
       textStyle: {
         color: '#607196',
-        fontSize: 12
+        fontSize: 11
       },
       precision: 0,
       calculable: true,
@@ -233,7 +234,7 @@ var CHART_OPTION = {
       },
       formatter: (value) => {
         if ( value == 0 ) {
-          return "In contact (Cα↔ < 5Å); Modified, but no joint PTMs";
+          return "In contact (Cα↔ < 5Å)\nModified, but no joint PTMs";
         } else {
           return Math.round(value);
         }
