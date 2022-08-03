@@ -24,7 +24,7 @@ var CHART_OPTION = {
       show: true,
       top: '2px',
       left: '100px',
-      text: 'PTM Set Intersection Size:',
+      text: 'Common PTM Fraction:',
       textStyle: {
         fontSize: 12
       },
@@ -314,8 +314,9 @@ var CHART_OPTION = {
         color: '#607196',
         fontSize: 11
       },
-      precision: 0,
+      precision: 4,
       calculable: true,
+      realtime: false,
       inRange: {
         color: [ '#5A0FFD', '#FF2A00' ]
       },
@@ -326,7 +327,7 @@ var CHART_OPTION = {
         if ( value == 0 ) {
           return "In contact (Cα↔ < 5Å)\nModified, but no joint PTMs";
         } else {
-          return Math.round(value);
+          return Math.round( value * 100 ) + "%";
         }
       }
     },
@@ -495,6 +496,15 @@ window.onload = _ => {
       }
     }
   });
+  CHART.on('datarangeselected', (event) => {
+    if ( event.visualMapId === "\u0000series\u00000\u00000" ) {
+      CHART.dispatchAction({
+        type: 'selectDataRange',
+        visualMapIndex: 0,
+        selected: [ Math.max( ...[ event.selected[ 0 ], CHART_OPTION.visualMap[ 0 ].range[ 0 ] ] ), event.selected[ 1 ] ]
+      });
+    }
+  });
 };
 
 function updateChart(proteinAcc) {
@@ -584,7 +594,7 @@ function updateChart(proteinAcc) {
       let contactResidueNumber = parseInt(contactResidue.split("@")[1]);
       let residuePTM = DATA[proteinAcc].residues[residue].ptm;
       let contactResiduePTM = DATA[proteinAcc].residues[contactResidue].ptm;
-      if (residuePTM.length > 0 && contactResiduePTM.length > 0 && residueNumber > contactResidueNumber) {
+      if ( residuePTM.length > 0 && contactResiduePTM.length > 0 && residueNumber > contactResidueNumber) {
         let PTMSimilarity = computePTMSimilarity(residuePTM, contactResiduePTM);
         CHART_OPTION.series[0].data.push([
           residueNumber - 1,
@@ -624,17 +634,23 @@ function updateChart(proteinAcc) {
 }
 
 var computePTMSimilarity = (riPTM, rjPTM) => {
-  return computePTMIntersection( riPTM, rjPTM );  
+  let intersectionSize = computePTMIntersection( riPTM, rjPTM );
+  let unionSize = computePTMUnion( riPTM, rjPTM );
+  let similarity = intersectionSize / unionSize;
+  if ( similarity != 0 && similarity < CHART_OPTION.visualMap[ 0 ].range[ 0 ] ) {
+    CHART_OPTION.visualMap[ 0 ].range = [ similarity, 1 ];
+  }
+  return similarity;  
 };
 
 function computePTMIntersection(riPTM, rjPTM) {
   let intersection = riPTM.filter(v => rjPTM.includes(v));
-  let intersectionSize = intersection.length;
-  if (intersectionSize > CHART_OPTION.visualMap[ 0 ].max) {
-    CHART_OPTION.visualMap[ 0 ].max = intersectionSize;
-    CHART_OPTION.visualMap[ 0 ].range = [ 1, CHART_OPTION.visualMap[ 0 ].max ];
-  }
-  return intersectionSize;
+  return intersection.length;
+}
+
+function computePTMUnion(riPTM, rjPTM) {
+  let union = [...new Set([...riPTM, ...rjPTM])];
+  return union.length;
 }
 
 function toggleStackedBar( zoomFactorX, zoomFactorY ) {
