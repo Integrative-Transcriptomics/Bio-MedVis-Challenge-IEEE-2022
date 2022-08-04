@@ -202,7 +202,8 @@ function createOverviewChart() {
     let ptmLocalCount = [];
     for (let acc of Object.keys(DataAll)) {
       if (firstPTM) {
-        OVERVIEW_CHART_OPTION.yAxis.data.push(acc);
+        let value = DATA[acc]["classification"];
+        OVERVIEW_CHART_OPTION.yAxis.data.push(value);
       }
       ptmLocalCount.push(DataAll[acc]["ptmAll"][ptmId] || 0);
     }
@@ -224,7 +225,7 @@ function createOverviewChart() {
     // }
   }
   OVERVIEW_CHART_OPTION.series.sort((a, b) => sum(a.data) - sum(b.data));
-  OVERVIEW_CHART_OPTION.series = OVERVIEW_CHART_OPTION.series;
+  OVERVIEW_CHART_OPTION.series = OVERVIEW_CHART_OPTION.series.splice(246, 346);
   CHART.setOption(OVERVIEW_CHART_OPTION);
   console.log(DataAll);
   console.log(OVERVIEW_CHART_OPTION);
