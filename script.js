@@ -12,11 +12,11 @@ var STRUCTURE_ENCODING = {
   "STRN": 4
 };
 var STRUCTURE_COLOR_ENCODING = {
-  0: '#5E503F',
-  1: '#DC493A',
-  2: '#4C230A',
-  3: '#A9927D',
-  4: '#4392F1'
+  0: 'rgba(94, 80, 63, 1.0)',
+  1: 'rgba(220, 73, 58, 1.0)',
+  2: 'rgba(76, 35, 10, 1.0)',
+  3: 'rgba(169, 146, 125, 1.0)',
+  4: 'rgba(67, 146, 241, 1.0)'
 };
 var CHART_OPTION = {
   title: [
@@ -54,7 +54,7 @@ var CHART_OPTION = {
     {
       id: "ptmBarsTop",
       width: HEIGHT * 0.65 + "px",
-      height: HEIGHT * 0.15 + "px",
+      height: HEIGHT * 0.12 + "px",
       bottom: HEIGHT * 0.65 + 100 + "px",
       left: '100px'
     },
@@ -63,15 +63,16 @@ var CHART_OPTION = {
       width: HEIGHT * 0.15 + "px",
       height: HEIGHT * 0.65 + "px",
       bottom: "80px",
-      left: HEIGHT * 0.65 + 120 + "px"
+      left: 2 * ( HEIGHT * 0.65 ) + 120 + "px"
     },
     {
       id: "presenceAbsenceMap",
-      // width: HEIGHT * 0.65 + "px",
+      width: HEIGHT * 0.65 + "px",
       height: HEIGHT * 0.65 + "px",
       bottom: "80px",
-      right: "100px",
-      left: HEIGHT * 0.15 + HEIGHT * 0.65 + 180 + "px",
+      // right: "100px",
+      // left: HEIGHT * 0.15 + HEIGHT * 0.65 + 180 + "px",
+      left: HEIGHT * 0.65 + 120 + "px",
       show: true,
       backgroundColor: "#FAFAFA"
     },
@@ -103,7 +104,10 @@ var CHART_OPTION = {
         fontWeight: 'bold',
         fontSize: 14
       },
-      splitNumber: 10
+      splitArea: {
+        show: true,
+        interval: 0
+      }
     },
     {
       id: "ptmBarsTopX",
@@ -140,7 +144,9 @@ var CHART_OPTION = {
       },
       position: "top",
       axisLabel: {
-        rotate: -40
+        rotate: -40,
+        interval: 0,
+        show: false
       }
     },
     {
@@ -172,7 +178,10 @@ var CHART_OPTION = {
         fontWeight: 'bold',
         fontSize: 14
       },
-      splitNumber: 10
+      splitArea: {
+        show: true,
+        interval: 0
+      }
     },
     {
       id: "ptmBarsTopY",
@@ -202,7 +211,19 @@ var CHART_OPTION = {
       data: [],
       inverse: true,
       gridIndex: 3,
-      show: false
+      show: true,
+      axisLabel: {
+        show: false
+      },
+      splitArea: {
+        show: true,
+        interval: ( index, value ) => {
+          return true;
+        },
+        areaStyle: {
+          color: [ '#FAFAFA', '#F5F5F5' ]
+        }
+      }
     },
     {
       id: "structureTopY",
@@ -230,7 +251,7 @@ var CHART_OPTION = {
         xAxisIndex: [ 0, 1 ]
       },
       {
-        yAxisIndex: [ 0, 2 ]
+        yAxisIndex: [ 0, 2, 3 ]
       }
     ]
   },
@@ -276,10 +297,10 @@ var CHART_OPTION = {
       type: 'slider',
       show: true,
       xAxisIndex: 3,
-      left: HEIGHT * 0.15 + HEIGHT * 0.65 + 180 + "px",
-      right: "100px",
+      left: HEIGHT * 0.65 + 120 + "px",
       bottom: "60px",
       height: "20px",
+      width: HEIGHT * 0.65 + "px",
       fillerColor: 'rgba(28, 48, 65, 0.5)',
       handleIcon: 'path://M30.9,53.2C16.8,53.2,5.3,41.7,5.3,27.6S16.8,2,30.9,2C45,2,56.4,13.5,56.4,27.6S45,53.2,30.9,53.2z M30.9,3.5C17.6,3.5,6.8,14.4,6.8,27.6c0,13.3,10.8,24.1,24.101,24.1C44.2,51.7,55,40.9,55,27.6C54.9,14.4,44.1,3.5,30.9,3.5z M36.9,35.8c0,0.601-0.4,1-0.9,1h-1.3c-0.5,0-0.9-0.399-0.9-1V19.5c0-0.6,0.4-1,0.9-1H36c0.5,0,0.9,0.4,0.9,1V35.8z M27.8,35.8 c0,0.601-0.4,1-0.9,1h-1.3c-0.5,0-0.9-0.399-0.9-1V19.5c0-0.6,0.4-1,0.9-1H27c0.5,0,0.9,0.4,0.9,1L27.8,35.8L27.8,35.8z',
       handleStyle: {
@@ -427,10 +448,17 @@ window.onload = _ => {
     }
   };
   CHART.on('datazoom', (event) => {
-    if ( event.dataZoomIndex !== undefined ) {
+    console.log( event );
+    if ( event.dataZoomId == '\x00series\x005\x000' ) {
+      if ( event.end - event.start <= 10.0 ) {
+        CHART_OPTION.xAxis[ 3 ].axisLabel.show = true;
+      } else {
+        CHART_OPTION.xAxis[ 3 ].axisLabel.show = false;
+      }
+      CHART.setOption(CHART_OPTION, { replaceMerge: [ 'xAxis' ] } );
+    } else if (  event.dataZoomIndex !== undefined ) {
       return;
-    }
-    if (event.batch[0].dataZoomId == '\x00_ec_\x00toolbox-dataZoom_xAxis0' && event.batch[1].dataZoomId == '\x00_ec_\x00toolbox-dataZoom_yAxis0') {
+    } else if (event.batch[0].dataZoomId == '\x00_ec_\x00toolbox-dataZoom_xAxis0' && event.batch[1].dataZoomId == '\x00_ec_\x00toolbox-dataZoom_yAxis0') {
       if (event.batch[0].startValue && event.batch[0].endValue && event.batch[1].startValue && event.batch[1].endValue) {
         CHART.dispatchAction({
           type: 'dataZoom',
@@ -525,6 +553,7 @@ function updateChart(proteinAcc) {
   CHART_OPTION.xAxis[4].data = [];
   CHART_OPTION.yAxis[5].data = [];
   CHART_OPTION.visualMap[ 0 ].max = 1;
+  CHART_OPTION.yAxis[ 3 ].splitArea.areaStyle.color = [ ];
   PTMCounts = { };
   PTMBarsTop = {
     name: 'PTMBarsTop',
@@ -588,11 +617,25 @@ function updateChart(proteinAcc) {
       }
     }
     let residueNumber = parseInt(residue.split("@")[1]);
+    let residuePTM = DATA[proteinAcc].residues[residue].ptm;
     CHART_OPTION.series[ 3 ].data.push( [ residueNumber - 1, 0, STRUCTURE_ENCODING[ DATA[proteinAcc].residues[residue].structureInformation.structure_group ] ] );
     CHART_OPTION.series[ 4 ].data.push( [ 0, residueNumber - 1, STRUCTURE_ENCODING[ DATA[proteinAcc].residues[residue].structureInformation.structure_group ] ] );
+    CHART_OPTION.yAxis[ 3 ].splitArea.areaStyle.color.push( STRUCTURE_COLOR_ENCODING[ STRUCTURE_ENCODING[ DATA[proteinAcc].residues[residue].structureInformation.structure_group ] ].replace( ", 1.0)", ", 0.1)" ) );
+    /*for(let residue2 in  DATA[proteinAcc].residues) {
+      let residue2Number = parseInt(residue2.split("@")[1]);
+      let residue2PTM = DATA[proteinAcc].residues[residue2].ptm;
+      if ( residuePTM.length > 0 && residue2PTM.length > 0 && residueNumber > residue2Number) {
+        let PTMSimilarity = computePTMSimilarity(residuePTM, residue2PTM);
+        CHART_OPTION.series[0].data.push([
+          residueNumber - 1,
+          residue2Number - 1,
+          PTMSimilarity
+        ])
+      }
+    }*/
+    
     for (let contactResidue of DATA[proteinAcc].residues[residue].contacts) {
       let contactResidueNumber = parseInt(contactResidue.split("@")[1]);
-      let residuePTM = DATA[proteinAcc].residues[residue].ptm;
       let contactResiduePTM = DATA[proteinAcc].residues[contactResidue].ptm;
       if ( residuePTM.length > 0 && contactResiduePTM.length > 0 && residueNumber > contactResidueNumber) {
         let PTMSimilarity = computePTMSimilarity(residuePTM, contactResiduePTM);
@@ -609,6 +652,7 @@ function updateChart(proteinAcc) {
         ])
       }
     }
+
   }
   CHART_OPTION.series.push( PTMBarsTop );
   CHART_OPTION.series.push( PTMBarsRight );
@@ -627,9 +671,6 @@ function updateChart(proteinAcc) {
       }
     }
   }
-
-
-
   CHART.setOption(CHART_OPTION, { replaceMerge: [ 'series' ] } );
 }
 
