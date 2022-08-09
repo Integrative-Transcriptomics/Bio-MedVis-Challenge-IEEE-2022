@@ -481,7 +481,7 @@ window.onload = _ => {
   CHART.on('datazoom', (event) => {
     console.log( event );
     if ( event.dataZoomId == '\x00series\x005\x000' ) {
-      if ( event.end - event.start <= 10.0 ) {
+      if ( CHART_OPTION.xAxis[ 3 ].data.length * ( ( event.end - event.start ) / 100 ) <= 30.0 ) {
         CHART_OPTION.xAxis[ 3 ].axisLabel.show = true;
       } else {
         CHART_OPTION.xAxis[ 3 ].axisLabel.show = false;
