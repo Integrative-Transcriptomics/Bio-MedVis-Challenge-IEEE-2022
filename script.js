@@ -4,6 +4,8 @@ var CHART;
 var WIDTH = window.innerWidth;
 var HEIGHT = window.innerHeight;
 var PROGRESSIVE_RENDERING_VALUE = 0;
+var PTM_MAP_CONTACT_RESTRICTION = true;
+var PTM_SIMILARITY_MODE = 'fraction';
 var STRUCTURE_ENCODING = {
   "unstructured": 0,
   "HELX": 1,
@@ -303,6 +305,77 @@ var CHART_OPTION = {
       dataZoom: {
         xAxisIndex: 0,
         yAxisIndex: 0
+      },
+      myTool1: {
+        show: true,
+        title: 'Contact Restriction: True',
+        icon: 'path://M0 224C0 188.7 28.65 160 64 160H128V288C128 341 170.1 384 224 384H352V448C352 483.3 323.3 512 288 512H64C28.65 512 0 483.3 0 448V224zM224 352C188.7 352 160 323.3 160 288V64C160 28.65 188.7 0 224 0H448C483.3 0 512 28.65 512 64V288C512 323.3 483.3 352 448 352H224z',
+        onclick: ( ) => {
+          if ( PTM_MAP_CONTACT_RESTRICTION ) {
+            PTM_MAP_CONTACT_RESTRICTION = false;
+            CHART_OPTION.toolbox.feature.myTool1.icon = 'path://M0 96C0 60.65 28.65 32 64 32H384C419.3 32 448 60.65 448 96V416C448 451.3 419.3 480 384 480H64C28.65 480 0 451.3 0 416V96z';
+            CHART_OPTION.toolbox.feature.myTool1.title = 'Contact Restriction: False';
+            updateChart( selectedAcc );
+          } else {
+            PTM_MAP_CONTACT_RESTRICTION = true;
+            CHART_OPTION.toolbox.feature.myTool1.icon = 'path://M0 224C0 188.7 28.65 160 64 160H128V288C128 341 170.1 384 224 384H352V448C352 483.3 323.3 512 288 512H64C28.65 512 0 483.3 0 448V224zM224 352C188.7 352 160 323.3 160 288V64C160 28.65 188.7 0 224 0H448C483.3 0 512 28.65 512 64V288C512 323.3 483.3 352 448 352H224z';
+            CHART_OPTION.toolbox.feature.myTool1.title = 'Contact Restriction: True';
+            updateChart( selectedAcc );
+          }
+        }
+      },
+      myTool2: {
+        show: true,
+        title: 'Similarity Mode: Fraction',
+        icon: 'path://M177.9 494.1C159.2 512.8 128.8 512.8 110.1 494.1L17.94 401.9C-.8054 383.2-.8054 352.8 17.94 334.1L68.69 283.3L116.7 331.3C122.9 337.6 133.1 337.6 139.3 331.3C145.6 325.1 145.6 314.9 139.3 308.7L91.31 260.7L132.7 219.3L180.7 267.3C186.9 273.6 197.1 273.6 203.3 267.3C209.6 261.1 209.6 250.9 203.3 244.7L155.3 196.7L196.7 155.3L244.7 203.3C250.9 209.6 261.1 209.6 267.3 203.3C273.6 197.1 273.6 186.9 267.3 180.7L219.3 132.7L260.7 91.31L308.7 139.3C314.9 145.6 325.1 145.6 331.3 139.3C337.6 133.1 337.6 122.9 331.3 116.7L283.3 68.69L334.1 17.94C352.8-.8055 383.2-.8055 401.9 17.94L494.1 110.1C512.8 128.8 512.8 159.2 494.1 177.9L177.9 494.1z',
+        onclick: ( ) => {
+          if ( PTM_SIMILARITY_MODE == 'fraction' ) {
+            PTM_SIMILARITY_MODE = 'total';
+            CHART_OPTION.toolbox.feature.myTool1.title = 'Similarity Mode: Total';
+            CHART_OPTION.visualMap[ 0 ].max = 1;
+            CHART_OPTION.visualMap[ 0 ].range = [ 1, 1 ];
+            CHART_OPTION.visualMap[ 0 ].formatter = (value) => {
+              if ( value == 0 ) {
+                return "In contact (Cα↔ < 5Å)\nModified, but no joint PTMs";
+              } else {
+                return Math.round( value );
+              }
+            };
+            CHART_OPTION.title[ 0 ].text = "Common PTM Total: "
+            computePTMSimilarity = (riPTM, rjPTM) => {
+              let similarity = computePTMIntersection( riPTM, rjPTM );
+              if ( similarity != 0 && similarity > CHART_OPTION.visualMap[ 0 ].max ) {
+                CHART_OPTION.visualMap[ 0 ].max = similarity;
+                CHART_OPTION.visualMap[ 0 ].range = [ 1, similarity ];
+              }
+              return similarity;
+            };
+            updateChart( selectedAcc );
+          } else {
+            PTM_SIMILARITY_MODE = 'fraction';
+            CHART_OPTION.toolbox.feature.myTool1.title = 'Similarity Mode: Fraction';
+            CHART_OPTION.visualMap[ 0 ].max = 1;
+            CHART_OPTION.visualMap[ 0 ].range = [ 1, 1 ];
+            CHART_OPTION.visualMap[ 0 ].formatter = (value) => {
+              if ( value == 0 ) {
+                return "In contact (Cα↔ < 5Å)\nModified, but no joint PTMs";
+              } else {
+                return Math.round( value * 100 ) + "%";
+              }
+            };
+            CHART_OPTION.title[ 0 ].text = "Common PTM Fraction: "
+            computePTMSimilarity = (riPTM, rjPTM) => {
+              let intersectionSize = computePTMIntersection( riPTM, rjPTM );
+              let unionSize = computePTMUnion( riPTM, rjPTM );
+              let similarity = intersectionSize / unionSize;
+              if ( similarity != 0 && similarity < CHART_OPTION.visualMap[ 0 ].range[ 0 ] ) {
+                CHART_OPTION.visualMap[ 0 ].range = [ similarity, 1 ];
+              }
+              return similarity;
+            };
+            updateChart( selectedAcc );
+          }
+        }
       }
     }
   },
@@ -413,7 +486,7 @@ var CHART_OPTION = {
       seriesIndex: [ ],
       pieces: [
         { value: 0, label: "Unique", color: '#89BD9E' },
-        { value: 1, label: "Joint", color: '#3C153B' }
+        { value: 1, label: "Common", color: '#3C153B' }
       ],
       top: '0px',
       left: HEIGHT * 0.65 + 880 + "px",
@@ -654,7 +727,6 @@ function updateChart(proteinAcc) {
       color: '#89BD9E'
     },
     large: true,
-    //progressive: PROGRESSIVE_RENDERING_VALUE,
     emphasis: {
       disabled: true
     },
@@ -671,7 +743,6 @@ function updateChart(proteinAcc) {
       color: '#3C153B'
     },
     large: true,
-    //progressive: PROGRESSIVE_RENDERING_VALUE,
     emphasis: {
       disabled: true
     },
@@ -692,8 +763,6 @@ function updateChart(proteinAcc) {
     CHART_OPTION.yAxis[3].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
     CHART_OPTION.xAxis[4].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
     CHART_OPTION.yAxis[5].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
-    // PTMBarsTopUnique.data.push( DATA[proteinAcc].residues[residue].ptm.length );
-    // PTMBarsRightUnique.data.push( DATA[proteinAcc].residues[residue].ptm.length );
     let residuePTMCounts = {};
     DATA[proteinAcc].residues[residue].ptm.forEach(ptm => {
       let ptmKey = ptm.split( "]" )[ 1 ];
@@ -715,40 +784,34 @@ function updateChart(proteinAcc) {
     CHART_OPTION.series[ 3 ].data.push( [ residueNumber - 1, 0, STRUCTURE_ENCODING[ DATA[proteinAcc].residues[residue].structureInformation.structure_group ] ] );
     CHART_OPTION.series[ 4 ].data.push( [ 0, residueNumber - 1, STRUCTURE_ENCODING[ DATA[proteinAcc].residues[residue].structureInformation.structure_group ] ] );
     CHART_OPTION.yAxis[ 3 ].splitArea.areaStyle.color.push( STRUCTURE_COLOR_ENCODING[ STRUCTURE_ENCODING[ DATA[proteinAcc].residues[residue].structureInformation.structure_group ] ].replace( ", 1.0)", ", 0.1)" ) );
-    /*for(let residue2 in  DATA[proteinAcc].residues) {
-      let residue2Number = parseInt(residue2.split("@")[1]);
-      let residue2PTM = DATA[proteinAcc].residues[residue2].ptm;
-      if ( residuePTM.length > 0 && residue2PTM.length > 0 && residueNumber > residue2Number) {
-        let PTMSimilarity = computePTMSimilarity(residuePTM, residue2PTM);
-        CHART_OPTION.series[0].data.push([
-          residueNumber - 1,
-          residue2Number - 1,
-          PTMSimilarity
-        ])
-      }
-    }*/
+    let pairResidues;
+    if ( PTM_MAP_CONTACT_RESTRICTION ) {
+      pairResidues = DATA[proteinAcc].residues[residue].contacts;
+    } else {
+      pairResidues = Object.keys( DATA[proteinAcc].residues );
+    }
     let uniquePTMs = new Set( DATA[proteinAcc].residues[residue].ptm );
     let noJointPTMs = 0;
-    for (let contactResidue of DATA[proteinAcc].residues[residue].contacts) {
-      let contactResidueNumber = parseInt(contactResidue.split("@")[1]);
-      let contactResiduePTM = DATA[proteinAcc].residues[contactResidue].ptm;
-      contactResiduePTM.forEach( ptm => {
+    for (let pairResidue of pairResidues) {
+      let pairResidueNumber = parseInt(pairResidue.split("@")[1]);
+      let pairResiduePTM = DATA[proteinAcc].residues[pairResidue].ptm;
+      pairResiduePTM.forEach( ptm => {
         if ( uniquePTMs.has( ptm ) ) {
           noJointPTMs += 1;
           uniquePTMs.delete( ptm );
         }
       } );
-      if ( residuePTM.length > 0 && contactResiduePTM.length > 0 && residueNumber > contactResidueNumber) {
-        let PTMSimilarity = computePTMSimilarity(residuePTM, contactResiduePTM);
+      if ( residuePTM.length > 0 && pairResiduePTM.length > 0 && residueNumber > pairResidueNumber) {
+        let PTMSimilarity = computePTMSimilarity(residuePTM, pairResiduePTM);
         CHART_OPTION.series[0].data.push([
           residueNumber - 1,
-          contactResidueNumber - 1,
+          pairResidueNumber - 1,
           PTMSimilarity
         ])
-      } else if ( residueNumber < contactResidueNumber ) {
+      } else if ( residueNumber < pairResidueNumber && DATA[proteinAcc].residues[residue].contacts.includes( pairResidue ) ) {
         CHART_OPTION.series[1].data.push([
           residueNumber - 1,
-          contactResidueNumber - 1,
+          pairResidueNumber - 1,
           0
         ])
       }
