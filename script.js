@@ -40,8 +40,18 @@ var CHART_OPTION = {
     {
       show: true,
       top: '2px',
-      left: HEIGHT * 0.65 + 300 + "px",
+      left: HEIGHT * 0.65 + 220 + "px",
       text: 'Secondary Structure Type:',
+      textStyle: {
+        fontSize: 12
+      },
+      textAlign: 'left'
+    },
+    {
+      show: true,
+      top: '2px',
+      left: HEIGHT * 0.65 + 800 + "px",
+      text: 'No. PTMs:',
       textStyle: {
         fontSize: 12
       },
@@ -393,7 +403,20 @@ var CHART_OPTION = {
         { value: STRUCTURE_ENCODING[ "STRN" ], label: "Sheet", color: STRUCTURE_COLOR_ENCODING[ STRUCTURE_ENCODING[ "STRN" ] ] } 
       ],
       top: '0px',
-      left: HEIGHT * 0.65 + 480 + "px",
+      left: HEIGHT * 0.65 + 400 + "px",
+      orient: 'horizontal',
+      selectMode: false
+    },
+    {
+      type: 'piecewise',
+      dimension: 0,
+      seriesIndex: [ ],
+      pieces: [
+        { value: 0, label: "Unique", color: '#89BD9E' },
+        { value: 1, label: "Joint", color: '#3C153B' }
+      ],
+      top: '0px',
+      left: HEIGHT * 0.65 + 880 + "px",
       orient: 'horizontal',
       selectMode: false
     }
@@ -467,8 +490,10 @@ var CHART_OPTION = {
   ]
 };
 var PTMCounts = {};
-var PTMBarsTop = { };
-var PTMBarsRight = { };
+var PTMBarsTopUnique = { };
+var PTMBarsTopJoint = { };
+var PTMBarsRightUnique = { };
+var PTMBarsRightJoint = { };
 var selectedAcc = null;
 
 window.onload = _ => {
@@ -479,7 +504,7 @@ window.onload = _ => {
     }
   };
   CHART.on('datazoom', (event) => {
-    console.log( event );
+    // console.log( event );
     if ( event.dataZoomId == '\x00series\x005\x000' ) {
       if ( CHART_OPTION.xAxis[ 3 ].data.length * ( ( event.end - event.start ) / 100 ) <= 30.0 ) {
         CHART_OPTION.xAxis[ 3 ].axisLabel.show = true;
@@ -587,35 +612,71 @@ function updateChart(proteinAcc) {
   CHART_OPTION.visualMap[ 0 ].max = 1;
   CHART_OPTION.yAxis[ 3 ].splitArea.areaStyle.color = [ ];
   PTMCounts = { };
-  PTMBarsTop = {
-    name: 'PTMBarsTop',
+  PTMBarsTopUnique = {
+    name: 'PTMBarsTopUnique',
     type: 'bar',
     xAxisIndex: 1,
     yAxisIndex: 1,
     data: [ ],
     itemStyle: {
-      color: '#6b6b6b'
+      color: '#89BD9E'
     },
     large: true,
-    //progressive: PROGRESSIVE_RENDERING_VALUE,
     emphasis: {
       disabled: true
-    }
+    },
+    stack: 'stackTop',
+    sampling: 'average'
   };
-  PTMBarsRight = {
-    name: 'PTMBarsRight',
+  PTMBarsTopJoint = {
+    name: 'PTMBarsTopJoint',
+    type: 'bar',
+    xAxisIndex: 1,
+    yAxisIndex: 1,
+    data: [ ],
+    itemStyle: {
+      color: '#3C153B'
+    },
+    large: true,
+    emphasis: {
+      disabled: true
+    },
+    stack: 'stackTop',
+    sampling: 'average'
+  };
+  PTMBarsRightUnique = {
+    name: 'PTMBarsRightUnique',
     type: 'bar',
     xAxisIndex: 2,
     yAxisIndex: 2,
     data: [ ],
     itemStyle: {
-      color: '#6b6b6b'
+      color: '#89BD9E'
     },
     large: true,
     //progressive: PROGRESSIVE_RENDERING_VALUE,
     emphasis: {
       disabled: true
-    }
+    },
+    stack: 'stackRight',
+    sampling: 'average'
+  };
+  PTMBarsRightJoint = {
+    name: 'PTMBarsRightJoint',
+    type: 'bar',
+    xAxisIndex: 2,
+    yAxisIndex: 2,
+    data: [ ],
+    itemStyle: {
+      color: '#3C153B'
+    },
+    large: true,
+    //progressive: PROGRESSIVE_RENDERING_VALUE,
+    emphasis: {
+      disabled: true
+    },
+    stack: 'stackRight',
+    sampling: 'average'
   };
   for (let residue in DATA[proteinAcc].residues) {
     DATA[proteinAcc].residues[residue].ptm.forEach(ptm => {
@@ -631,8 +692,8 @@ function updateChart(proteinAcc) {
     CHART_OPTION.yAxis[3].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
     CHART_OPTION.xAxis[4].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
     CHART_OPTION.yAxis[5].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
-    PTMBarsTop.data.push( DATA[proteinAcc].residues[residue].ptm.length );
-    PTMBarsRight.data.push( DATA[proteinAcc].residues[residue].ptm.length );
+    // PTMBarsTopUnique.data.push( DATA[proteinAcc].residues[residue].ptm.length );
+    // PTMBarsRightUnique.data.push( DATA[proteinAcc].residues[residue].ptm.length );
     let residuePTMCounts = {};
     DATA[proteinAcc].residues[residue].ptm.forEach(ptm => {
       let ptmKey = ptm.split( "]" )[ 1 ];
@@ -666,9 +727,17 @@ function updateChart(proteinAcc) {
         ])
       }
     }*/
+    let uniquePTMs = new Set( DATA[proteinAcc].residues[residue].ptm );
+    let noJointPTMs = 0;
     for (let contactResidue of DATA[proteinAcc].residues[residue].contacts) {
       let contactResidueNumber = parseInt(contactResidue.split("@")[1]);
       let contactResiduePTM = DATA[proteinAcc].residues[contactResidue].ptm;
+      contactResiduePTM.forEach( ptm => {
+        if ( uniquePTMs.has( ptm ) ) {
+          noJointPTMs += 1;
+          uniquePTMs.delete( ptm );
+        }
+      } );
       if ( residuePTM.length > 0 && contactResiduePTM.length > 0 && residueNumber > contactResidueNumber) {
         let PTMSimilarity = computePTMSimilarity(residuePTM, contactResiduePTM);
         CHART_OPTION.series[0].data.push([
@@ -684,10 +753,15 @@ function updateChart(proteinAcc) {
         ])
       }
     }
-
+    PTMBarsTopUnique.data.push( uniquePTMs.size );
+    PTMBarsTopJoint.data.push( noJointPTMs );
+    PTMBarsRightUnique.data.push( uniquePTMs.size );
+    PTMBarsRightJoint.data.push( noJointPTMs );
   }
-  CHART_OPTION.series.push( PTMBarsTop );
-  CHART_OPTION.series.push( PTMBarsRight );
+  CHART_OPTION.series.push( PTMBarsTopUnique );
+  CHART_OPTION.series.push( PTMBarsTopJoint );
+  CHART_OPTION.series.push( PTMBarsRightUnique );
+  CHART_OPTION.series.push( PTMBarsRightJoint );
   let PTMNames = Object.keys( PTMCounts );
   /*
   // Sorts PTMs by number of occurences:
@@ -750,7 +824,7 @@ function toggleStackedBar( zoomFactorX, zoomFactorY ) {
     }
     CHART.setOption(CHART_OPTION, { replaceMerge: [ 'series' ] });
   } else {
-    CHART_OPTION.series.push( PTMBarsTop );
+    CHART_OPTION.series.push( PTMBarsTopUnique );
     CHART.setOption(CHART_OPTION, { replaceMerge: [ 'series' ] } );
   }
   if ( zoomFactorY !== -1 && zoomFactorY <= 0 ) {
@@ -767,7 +841,7 @@ function toggleStackedBar( zoomFactorX, zoomFactorY ) {
     }
     CHART.setOption(CHART_OPTION, { replaceMerge: [ 'series' ] });
   } else {
-    CHART_OPTION.series.push( PTMBarsRight );
+    CHART_OPTION.series.push( PTMBarsRightUnique );
     CHART.setOption(CHART_OPTION, { replaceMerge: [ 'series' ] } );
   }
 }
