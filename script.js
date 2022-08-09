@@ -11,6 +11,13 @@ var STRUCTURE_ENCODING = {
   "TURN": 3,
   "STRN": 4
 };
+var STRUCTURE_LABELS = {
+  "unstructured": "Unstructured",
+  "HELX": "Helix",
+  "BEND": "Bend",
+  "TURN": "Turn",
+  "STRN": "Sheet"
+};
 var STRUCTURE_COLOR_ENCODING = {
   0: 'rgba(94, 80, 63, 1.0)',
   1: 'rgba(220, 73, 58, 1.0)',
@@ -23,7 +30,7 @@ var CHART_OPTION = {
     {
       show: true,
       top: '2px',
-      left: '100px',
+      left: '200px',
       text: 'Common PTM Fraction:',
       textStyle: {
         fontSize: 12
@@ -33,7 +40,7 @@ var CHART_OPTION = {
     {
       show: true,
       top: '2px',
-      left: HEIGHT * 0.65 + 150 + "px",
+      left: HEIGHT * 0.65 + 300 + "px",
       text: 'Secondary Structure Type:',
       textStyle: {
         fontSize: 12
@@ -47,7 +54,7 @@ var CHART_OPTION = {
       width: HEIGHT * 0.65 + "px",
       height: HEIGHT * 0.65 + "px",
       bottom: "80px",
-      left: "100px",
+      left: "200px",
       show: true,
       backgroundColor: "#FAFAFA"
     },
@@ -56,14 +63,14 @@ var CHART_OPTION = {
       width: HEIGHT * 0.65 + "px",
       height: HEIGHT * 0.12 + "px",
       bottom: HEIGHT * 0.65 + 100 + "px",
-      left: '100px'
+      left: '200px'
     },
     {
       id: "ptmBarsRight",
       width: HEIGHT * 0.15 + "px",
       height: HEIGHT * 0.65 + "px",
       bottom: "80px",
-      left: 2 * ( HEIGHT * 0.65 ) + 120 + "px"
+      left: 2 * ( HEIGHT * 0.65 ) + 220 + "px"
     },
     {
       id: "presenceAbsenceMap",
@@ -72,7 +79,7 @@ var CHART_OPTION = {
       bottom: "80px",
       // right: "100px",
       // left: HEIGHT * 0.15 + HEIGHT * 0.65 + 180 + "px",
-      left: HEIGHT * 0.65 + 120 + "px",
+      left: HEIGHT * 0.65 + 220 + "px",
       show: true,
       backgroundColor: "#FAFAFA"
     },
@@ -80,14 +87,14 @@ var CHART_OPTION = {
       id: "structureTop",
       width: HEIGHT * 0.65 + "px",
       height: "18px",
-      left: "100px",
+      left: "200px",
       bottom: HEIGHT * 0.65 + 80 + "px"
     },
     {
       id: "structureRight",
       width: "18px",
       height: HEIGHT * 0.65 + "px",
-      left: HEIGHT * 0.65 + 100 + "px",
+      left: HEIGHT * 0.65 + 200 + "px",
       bottom: "80px"
     }
   ],
@@ -248,12 +255,34 @@ var CHART_OPTION = {
     triggerTooltip: false,
     link: [
       {
-        xAxisIndex: [ 0, 1 ]
+        xAxisIndex: [ 0, 1, 4 ]
       },
       {
         yAxisIndex: [ 0, 2, 3 ]
       }
-    ]
+    ],
+    label: {
+      formatter: ( params ) => {
+        try {
+          let residueAcc = params.value.split( "(" )[1].split( ")" )[0] + "@" + params.value.split( "(" )[0].trim( );
+          if ( params.axisDimension == "y" && params.axisIndex == 0 ) {
+            return params.value;
+          }  else if ( params.axisDimension == "y" && params.axisIndex == 2 ) {
+            return "No. PTMs: " + DATA[ selectedAcc ].residues[ residueAcc ].ptm.length;
+          } else if ( params.axisDimension == "y" && params.axisIndex == 3 ) {
+            return STRUCTURE_LABELS[ DATA[ selectedAcc ].residues[ residueAcc ].structureInformation.structure_group ];
+          } else if ( params.axisDimension == "x" && params.axisIndex == 0 ) {
+            return params.value;
+          } else if ( params.axisDimension == "x" && params.axisIndex == 1 ) {
+            return "No. PTMs: " + DATA[ selectedAcc ].residues[ residueAcc ].ptm.length;
+          } else if ( params.axisDimension == "x" && params.axisIndex == 4 ) {
+            return STRUCTURE_LABELS[ DATA[ selectedAcc ].residues[ residueAcc ].structureInformation.structure_group ];
+          }
+        } catch ( e ) {
+          return params.value;
+        }
+      }
+    }
   },
   tooltip: {
     show: false
@@ -297,7 +326,7 @@ var CHART_OPTION = {
       type: 'slider',
       show: true,
       xAxisIndex: 3,
-      left: HEIGHT * 0.65 + 120 + "px",
+      left: HEIGHT * 0.65 + 220 + "px",
       bottom: "60px",
       height: "20px",
       width: HEIGHT * 0.65 + "px",
@@ -330,7 +359,7 @@ var CHART_OPTION = {
       itemHeight: HEIGHT * 0.65 - 180,
       itemWidth: 12,
       top: '0px',
-      left: '280px',
+      left: '350px',
       textStyle: {
         color: '#607196',
         fontSize: 11
@@ -364,8 +393,9 @@ var CHART_OPTION = {
         { value: STRUCTURE_ENCODING[ "STRN" ], label: "Sheet", color: STRUCTURE_COLOR_ENCODING[ STRUCTURE_ENCODING[ "STRN" ] ] } 
       ],
       top: '0px',
-      left: HEIGHT * 0.65 + 330 + "px",
-      orient: 'horizontal'
+      left: HEIGHT * 0.65 + 480 + "px",
+      orient: 'horizontal',
+      selectMode: false
     }
   ],
   series: [
@@ -439,9 +469,10 @@ var CHART_OPTION = {
 var PTMCounts = {};
 var PTMBarsTop = { };
 var PTMBarsRight = { };
+var selectedAcc = null;
 
 window.onload = _ => {
-  CHART = echarts.init(document.getElementById("chartContainer"), { "renderer": "svg" });
+  CHART = echarts.init(document.getElementById("chartContainer"), { "renderer": "canvas" });
   document.getElementById("accSelect").onchange = (event) => {
     if (event.isTrusted && event.type == 'change') {
       updateChart(document.getElementById("accSelect").value);
@@ -536,6 +567,7 @@ window.onload = _ => {
 };
 
 function updateChart(proteinAcc) {
+  selectedAcc = proteinAcc;
   CHART_OPTION.series = [ CHART_OPTION.series[ 0 ], CHART_OPTION.series[ 1 ], CHART_OPTION.series[ 2 ], CHART_OPTION.series[ 3 ], CHART_OPTION.series[ 4 ] ];
   CHART_OPTION.series[0].data = [];
   CHART_OPTION.series[1].data = [];
@@ -587,10 +619,10 @@ function updateChart(proteinAcc) {
   };
   for (let residue in DATA[proteinAcc].residues) {
     DATA[proteinAcc].residues[residue].ptm.forEach(ptm => {
-      PTMCounts[ptm] = [ ];
+      let ptmKey = ptm.split( "]" )[ 1 ];
+      PTMCounts[ptmKey] = [ ];
     });
   }
-
   for (let residue in DATA[proteinAcc].residues) {
     CHART_OPTION.xAxis[0].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
     CHART_OPTION.xAxis[1].data.push(residue.split("@")[1] + " (" + residue.split("@")[0] + ")");
@@ -603,10 +635,11 @@ function updateChart(proteinAcc) {
     PTMBarsRight.data.push( DATA[proteinAcc].residues[residue].ptm.length );
     let residuePTMCounts = {};
     DATA[proteinAcc].residues[residue].ptm.forEach(ptm => {
-      if (residuePTMCounts[ptm]) {
-        residuePTMCounts[ptm]++;
+      let ptmKey = ptm.split( "]" )[ 1 ];
+      if (residuePTMCounts[ ptmKey ]) {
+        residuePTMCounts[ptmKey ]++;
       } else {
-        residuePTMCounts[ptm] = 1;
+        residuePTMCounts[ptmKey] = 1;
       }
     });
     for (let ptm of Object.keys(PTMCounts)) {
@@ -633,7 +666,6 @@ function updateChart(proteinAcc) {
         ])
       }
     }*/
-    
     for (let contactResidue of DATA[proteinAcc].residues[residue].contacts) {
       let contactResidueNumber = parseInt(contactResidue.split("@")[1]);
       let contactResiduePTM = DATA[proteinAcc].residues[contactResidue].ptm;
@@ -656,9 +688,17 @@ function updateChart(proteinAcc) {
   }
   CHART_OPTION.series.push( PTMBarsTop );
   CHART_OPTION.series.push( PTMBarsRight );
-
   let PTMNames = Object.keys( PTMCounts );
-  CHART_OPTION.xAxis[3].data = PTMNames.map( s => s.split( "]" )[ 1 ] );
+  /*
+  // Sorts PTMs by number of occurences:
+  PTMNames.sort( ( ptm1, ptm2 ) => {
+    let ptm1Sum = PTMCounts[ ptm1 ].reduce( ( a, c ) => a + c );
+    let ptm2Sum = PTMCounts[ ptm2 ].reduce( ( a, c ) => a + c );
+    return ptm2Sum - ptm1Sum;
+  } );
+  */
+  PTMNames.sort( );
+  CHART_OPTION.xAxis[3].data = PTMNames;
   for (let residueIndex = 0; residueIndex < Object.keys( DATA[proteinAcc].residues ).length; residueIndex++ ) {
     for( let PTMIndex = 0; PTMIndex < PTMNames.length; PTMIndex++ ) {
       let PTMCount = PTMCounts[ PTMNames[ PTMIndex ] ][ residueIndex ];
