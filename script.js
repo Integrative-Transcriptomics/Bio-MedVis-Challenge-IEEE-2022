@@ -331,12 +331,12 @@ var CHART_OPTION = {
         onclick: ( ) => {
           if ( PTM_SIMILARITY_MODE == 'fraction' ) {
             PTM_SIMILARITY_MODE = 'total';
-            CHART_OPTION.toolbox.feature.myTool1.title = 'Similarity Mode: Total';
+            CHART_OPTION.toolbox.feature.myTool2.title = 'Similarity Mode: Total';
             CHART_OPTION.visualMap[ 0 ].max = 1;
             CHART_OPTION.visualMap[ 0 ].range = [ 1, 1 ];
             CHART_OPTION.visualMap[ 0 ].formatter = (value) => {
               if ( value == 0 ) {
-                return "In contact (Cα↔ < 5Å)\nModified, but no joint PTMs";
+                return "In contact (Cα↔ ≤ 6Å)\nModified, but no joint PTMs";
               } else {
                 return Math.round( value );
               }
@@ -353,12 +353,12 @@ var CHART_OPTION = {
             updateChart( selectedAcc );
           } else {
             PTM_SIMILARITY_MODE = 'fraction';
-            CHART_OPTION.toolbox.feature.myTool1.title = 'Similarity Mode: Fraction';
+            CHART_OPTION.toolbox.feature.myTool2.title = 'Similarity Mode: Fraction';
             CHART_OPTION.visualMap[ 0 ].max = 1;
             CHART_OPTION.visualMap[ 0 ].range = [ 1, 1 ];
             CHART_OPTION.visualMap[ 0 ].formatter = (value) => {
               if ( value == 0 ) {
-                return "In contact (Cα↔ < 5Å)\nModified, but no joint PTMs";
+                return "In contact (Cα↔ ≤ 6Å)\nModified, but no joint PTMs";
               } else {
                 return Math.round( value * 100 ) + "%";
               }
@@ -451,14 +451,14 @@ var CHART_OPTION = {
       calculable: true,
       realtime: false,
       inRange: {
-        color: [ '#5A0FFD', '#FF2A00' ]
+        color: [ '#edf8b1', '#7fcdbb', '#2c7fb8' ] // '#5A0FFD', '#FF2A00'
       },
       outOfRange: {
         color: [ '#DFD9E2' ]
       },
       formatter: (value) => {
         if ( value == 0 ) {
-          return "In contact (Cα↔ < 5Å)\nModified, but no joint PTMs";
+          return "In contact (Cα↔ ≤ 6Å)\nModified, but no joint PTMs";
         } else {
           return Math.round( value * 100 ) + "%";
         }
