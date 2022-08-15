@@ -154,9 +154,9 @@ var CHART_OPTION = {
       type: 'category',
       data: [],
       gridIndex: 3,
-      name: 'PTM',
+      name: 'Individual PTM Presence (Per Residue)',
       nameLocation: 'middle',
-      nameGap: 120,
+      nameGap: -1 * HEIGHT * 0.7,
       nameTextStyle: {
         fontWeight: 'bold',
         fontSize: 14
@@ -165,7 +165,7 @@ var CHART_OPTION = {
       axisLabel: {
         rotate: -40,
         interval: 0,
-        show: false
+        show: true
       }
     },
     {
@@ -451,7 +451,10 @@ var CHART_OPTION = {
       calculable: true,
       realtime: false,
       inRange: {
-        color: [ '#edf8b1', '#7fcdbb', '#2c7fb8' ] // '#5A0FFD', '#FF2A00'
+        color: [ '#10E0C5', '#FF6200' ]
+        // Gray scale: '#cccccc', '#000000'
+        // CyBuPl1: '#edf8b1', '#7fcdbb', '#2c7fb8'
+        // CyBuPl2: '#10E0C5', '#293BE1', '#8C08C4'
       },
       outOfRange: {
         color: [ '#DFD9E2' ]
@@ -515,7 +518,7 @@ var CHART_OPTION = {
       itemStyle: {
         borderColor: '#CCCCCC',
         borderWidth: 0.1,
-        color: '#B5ACBA'
+        color: '#999999'
       },
       progressive: PROGRESSIVE_RENDERING_VALUE,
       emphasis: {
@@ -529,7 +532,7 @@ var CHART_OPTION = {
       itemStyle: {
         borderColor: '#CCCCCC',
         borderWidth: 0.1,
-        color: '#6b6b6b'
+        color: '#666666'
       },
       xAxisIndex: 3,
       yAxisIndex: 3,
@@ -579,10 +582,10 @@ window.onload = _ => {
   CHART.on('datazoom', (event) => {
     // console.log( event );
     if ( event.dataZoomId == '\x00series\x005\x000' ) {
-      if ( CHART_OPTION.xAxis[ 3 ].data.length * ( ( event.end - event.start ) / 100 ) <= 30.0 ) {
-        CHART_OPTION.xAxis[ 3 ].axisLabel.show = true;
+      if ( CHART_OPTION.xAxis[ 3 ].data.length * ( ( event.end - event.start ) / 100 ) <= 20.0 ) {
+        CHART_OPTION.xAxis[ 3 ].axisLabel.interval = 0;
       } else {
-        CHART_OPTION.xAxis[ 3 ].axisLabel.show = false;
+        CHART_OPTION.xAxis[ 3 ].axisLabel.interval = Math.round( CHART_OPTION.xAxis[ 3 ].data.length * ( ( event.end - event.start ) / 100 ) / 20 );
       }
       CHART.setOption(CHART_OPTION, { replaceMerge: [ 'xAxis' ] } );
     } else if (  event.dataZoomIndex !== undefined ) {
@@ -836,6 +839,7 @@ function updateChart(proteinAcc) {
   */
   PTMNames.sort( );
   CHART_OPTION.xAxis[3].data = PTMNames;
+  CHART_OPTION.xAxis[3].axisLabel.interval = Math.round( CHART_OPTION.xAxis[3].data.length / 20 );
   for (let residueIndex = 0; residueIndex < Object.keys( DATA[proteinAcc].residues ).length; residueIndex++ ) {
     for( let PTMIndex = 0; PTMIndex < PTMNames.length; PTMIndex++ ) {
       let PTMCount = PTMCounts[ PTMNames[ PTMIndex ] ][ residueIndex ];
