@@ -42,7 +42,7 @@ var CHART_OPTION = {
     {
       show: true,
       top: '2px',
-      left: HEIGHT * 0.65 + 220 + "px",
+      left: HEIGHT * 0.65 + 180 + "px",
       text: 'Secondary Structure Type:',
       textStyle: {
         fontSize: 12
@@ -52,7 +52,7 @@ var CHART_OPTION = {
     {
       show: true,
       top: '2px',
-      left: HEIGHT * 0.65 + 800 + "px",
+      left: HEIGHT * 0.65 + 760 + "px",
       text: 'No. PTMs:',
       textStyle: {
         fontSize: 12
@@ -123,10 +123,14 @@ var CHART_OPTION = {
         fontWeight: 'bold',
         fontSize: 14
       },
+      axisLabel: {
+        fontSize: 11
+      },
       splitArea: {
         show: true,
         interval: 0
-      }
+      },
+      hideOverlap: true
     },
     {
       id: "ptmBarsTopX",
@@ -146,8 +150,11 @@ var CHART_OPTION = {
         fontWeight: 'bold',
         fontSize: 14
       },
-      minInterval: 25,
-      splitNumber: 4
+      axisLabel: {
+        fontSize: 11
+      },
+      minInterval: 20,
+      hideOverlap: true
     },
     {
       id: "presenceAbsenceMapX",
@@ -165,8 +172,18 @@ var CHART_OPTION = {
       axisLabel: {
         rotate: -40,
         interval: 0,
-        show: true
-      }
+        show: true,
+        margin: 25,
+        fontSize: 11
+      },
+      axisTick: {
+        length: 16
+      },
+      splitArea: {
+        show: true,
+        interval: 0
+      },
+      hideOverlap: true
     },
     {
       id: "structureTopX",
@@ -197,10 +214,14 @@ var CHART_OPTION = {
         fontWeight: 'bold',
         fontSize: 14
       },
+      axisLabel: {
+        fontSize: 11
+      },
       splitArea: {
         show: true,
         interval: 0
-      }
+      },
+      hideOverlap: true
     },
     {
       id: "ptmBarsTopY",
@@ -213,8 +234,11 @@ var CHART_OPTION = {
         fontWeight: 'bold',
         fontSize: 14
       },
-      minInterval: 25,
-      splitNumber: 4
+      axisLabel: {
+        fontSize: 11
+      },
+      minInterval: 20,
+      hideOverlap: true
     },
     {
       id: "ptmBarsRightY",
@@ -234,6 +258,9 @@ var CHART_OPTION = {
       axisLabel: {
         show: false
       },
+      axisTick: {
+        show: false
+      },
       splitArea: {
         show: true,
         interval: ( index, value ) => {
@@ -242,7 +269,8 @@ var CHART_OPTION = {
         areaStyle: {
           color: [ '#FAFAFA', '#F5F5F5' ]
         }
-      }
+      },
+      hideOverlap: true
     },
     {
       id: "structureTopY",
@@ -376,6 +404,9 @@ var CHART_OPTION = {
             updateChart( selectedAcc );
           }
         }
+      },
+      saveAsImage: {
+        title: 'Save as PNG'
       }
     }
   },
@@ -410,21 +441,20 @@ var CHART_OPTION = {
       show: true,
       xAxisIndex: 3,
       left: HEIGHT * 0.65 + 220 + "px",
-      bottom: "60px",
-      height: "20px",
+      bottom: HEIGHT * 0.65 + 80 + "px",
+      height: "18px", // HEIGHT * 0.12 + 18 + "px",
       width: HEIGHT * 0.65 + "px",
-      fillerColor: 'rgba(28, 48, 65, 0.5)',
-      handleIcon: 'path://M30.9,53.2C16.8,53.2,5.3,41.7,5.3,27.6S16.8,2,30.9,2C45,2,56.4,13.5,56.4,27.6S45,53.2,30.9,53.2z M30.9,3.5C17.6,3.5,6.8,14.4,6.8,27.6c0,13.3,10.8,24.1,24.101,24.1C44.2,51.7,55,40.9,55,27.6C54.9,14.4,44.1,3.5,30.9,3.5z M36.9,35.8c0,0.601-0.4,1-0.9,1h-1.3c-0.5,0-0.9-0.399-0.9-1V19.5c0-0.6,0.4-1,0.9-1H36c0.5,0,0.9,0.4,0.9,1V35.8z M27.8,35.8 c0,0.601-0.4,1-0.9,1h-1.3c-0.5,0-0.9-0.399-0.9-1V19.5c0-0.6,0.4-1,0.9-1H27c0.5,0,0.9,0.4,0.9,1L27.8,35.8L27.8,35.8z',
+      fillerColor: 'rgba(204, 204, 204, 0.5)',
       handleStyle: {
-        color: 'rgba(28, 48, 65, 1.0)'
+        color: 'rgba(153, 153, 153, 0.8)'
       },
       moveHandleSize: 2,
       moveHandleStyle: {
-        color: 'rgba(28, 48, 65, 1.0)'
+        color: '#999999'
       },
       emphasis: {
         moveHandleStyle: {
-          color: 'rgba(37, 71, 101, 0.8)'
+          color: '#666666'
         }
       }
     }
@@ -439,7 +469,7 @@ var CHART_OPTION = {
       hoverLink: true,
       inverse: false,
       orient: 'horizontal',
-      itemHeight: HEIGHT * 0.65 - 180,
+      itemHeight: HEIGHT * 0.65 - 220,
       itemWidth: 12,
       top: '0px',
       left: '350px',
@@ -479,7 +509,7 @@ var CHART_OPTION = {
         { value: STRUCTURE_ENCODING[ "STRN" ], label: "Sheet", color: STRUCTURE_COLOR_ENCODING[ STRUCTURE_ENCODING[ "STRN" ] ] } 
       ],
       top: '0px',
-      left: HEIGHT * 0.65 + 400 + "px",
+      left: HEIGHT * 0.65 + 360 + "px",
       orient: 'horizontal',
       selectMode: false
     },
@@ -488,11 +518,11 @@ var CHART_OPTION = {
       dimension: 0,
       seriesIndex: [ ],
       pieces: [
-        { value: 0, label: "Unique", color: '#89BD9E' },
-        { value: 1, label: "Common", color: '#3C153B' }
+        { value: 0, label: "Unique", color: '#3C153B' },
+        { value: 1, label: "Shared", color: '#89BD9E' }
       ],
       top: '0px',
-      left: HEIGHT * 0.65 + 880 + "px",
+      left: HEIGHT * 0.65 + 840 + "px",
       orient: 'horizontal',
       selectMode: false
     }
@@ -504,12 +534,14 @@ var CHART_OPTION = {
       data: [],
       itemStyle: {
         borderColor: '#CCCCCC',
-        borderWidth: 0.1
+        borderWidth: 0.5
       },
       progressive: PROGRESSIVE_RENDERING_VALUE,
       emphasis: {
         disabled: true
-      }
+      },
+      animation: false,
+      silent: true
     },
     {
       name: 'ContactMap',
@@ -517,13 +549,15 @@ var CHART_OPTION = {
       data: [],
       itemStyle: {
         borderColor: '#CCCCCC',
-        borderWidth: 0.1,
+        borderWidth: 0.5,
         color: '#999999'
       },
       progressive: PROGRESSIVE_RENDERING_VALUE,
       emphasis: {
         disabled: true
-      }
+      },
+      animation: false,
+      silent: true
     },
     {
       name: 'PresenceAbsenceMap',
@@ -531,7 +565,7 @@ var CHART_OPTION = {
       data: [ ],
       itemStyle: {
         borderColor: '#CCCCCC',
-        borderWidth: 0.1,
+        borderWidth: 0.5,
         color: '#666666'
       },
       xAxisIndex: 3,
@@ -539,7 +573,9 @@ var CHART_OPTION = {
       progressive: PROGRESSIVE_RENDERING_VALUE,
       emphasis: {
         disabled: true
-      }
+      },
+      animation: false,
+      silent: true
     },
     {
       name: 'StructureTop',
@@ -550,7 +586,9 @@ var CHART_OPTION = {
       progressive: PROGRESSIVE_RENDERING_VALUE,
       emphasis: {
         disabled: true
-      }
+      },
+      animation: false,
+      silent: true
     },
     {
       name: 'StructureRight',
@@ -561,7 +599,9 @@ var CHART_OPTION = {
       progressive: PROGRESSIVE_RENDERING_VALUE,
       emphasis: {
         disabled: true
-      }
+      },
+      animation: false,
+      silent: true
     }
   ]
 };
@@ -580,7 +620,6 @@ window.onload = _ => {
     }
   };
   CHART.on('datazoom', (event) => {
-    // console.log( event );
     if ( event.dataZoomId == '\x00series\x005\x000' ) {
       if ( CHART_OPTION.xAxis[ 3 ].data.length * ( ( event.end - event.start ) / 100 ) <= 20.0 ) {
         CHART_OPTION.xAxis[ 3 ].axisLabel.interval = 0;
@@ -688,8 +727,8 @@ function updateChart(proteinAcc) {
   CHART_OPTION.visualMap[ 0 ].max = 1;
   CHART_OPTION.yAxis[ 3 ].splitArea.areaStyle.color = [ ];
   PTMCounts = { };
-  PTMBarsTopUnique = {
-    name: 'PTMBarsTopUnique',
+  PTMBarsTopJoint = {
+    name: 'PTMBarsTopJoint',
     type: 'bar',
     xAxisIndex: 1,
     yAxisIndex: 1,
@@ -702,10 +741,12 @@ function updateChart(proteinAcc) {
       disabled: true
     },
     stack: 'stackTop',
-    sampling: 'average'
+    sampling: 'average',
+    animation: false,
+    silent: true
   };
-  PTMBarsTopJoint = {
-    name: 'PTMBarsTopJoint',
+  PTMBarsTopUnique = {
+    name: 'PTMBarsTopUnique',
     type: 'bar',
     xAxisIndex: 1,
     yAxisIndex: 1,
@@ -718,23 +759,9 @@ function updateChart(proteinAcc) {
       disabled: true
     },
     stack: 'stackTop',
-    sampling: 'average'
-  };
-  PTMBarsRightUnique = {
-    name: 'PTMBarsRightUnique',
-    type: 'bar',
-    xAxisIndex: 2,
-    yAxisIndex: 2,
-    data: [ ],
-    itemStyle: {
-      color: '#89BD9E'
-    },
-    large: true,
-    emphasis: {
-      disabled: true
-    },
-    stack: 'stackRight',
-    sampling: 'average'
+    sampling: 'average',
+    animation: false,
+    silent: true
   };
   PTMBarsRightJoint = {
     name: 'PTMBarsRightJoint',
@@ -743,6 +770,24 @@ function updateChart(proteinAcc) {
     yAxisIndex: 2,
     data: [ ],
     itemStyle: {
+      color: '#89BD9E'
+    },
+    large: true,
+    emphasis: {
+      disabled: true
+    },
+    stack: 'stackRight',
+    sampling: 'average',
+    animation: false,
+    silent: true
+  };
+  PTMBarsRightUnique = {
+    name: 'PTMBarsRightUnique',
+    type: 'bar',
+    xAxisIndex: 2,
+    yAxisIndex: 2,
+    data: [ ],
+    itemStyle: {
       color: '#3C153B'
     },
     large: true,
@@ -750,7 +795,9 @@ function updateChart(proteinAcc) {
       disabled: true
     },
     stack: 'stackRight',
-    sampling: 'average'
+    sampling: 'average',
+    animation: false,
+    silent: true
   };
   for (let residue in DATA[proteinAcc].residues) {
     DATA[proteinAcc].residues[residue].ptm.forEach(ptm => {
@@ -819,15 +866,15 @@ function updateChart(proteinAcc) {
         ])
       }
     }
-    PTMBarsTopUnique.data.push( uniquePTMs.size );
     PTMBarsTopJoint.data.push( noJointPTMs );
-    PTMBarsRightUnique.data.push( uniquePTMs.size );
+    PTMBarsTopUnique.data.push( uniquePTMs.size );
     PTMBarsRightJoint.data.push( noJointPTMs );
+    PTMBarsRightUnique.data.push( uniquePTMs.size );
   }
-  CHART_OPTION.series.push( PTMBarsTopUnique );
   CHART_OPTION.series.push( PTMBarsTopJoint );
-  CHART_OPTION.series.push( PTMBarsRightUnique );
+  CHART_OPTION.series.push( PTMBarsTopUnique );
   CHART_OPTION.series.push( PTMBarsRightJoint );
+  CHART_OPTION.series.push( PTMBarsRightUnique );
   let PTMNames = Object.keys( PTMCounts );
   /*
   // Sorts PTMs by number of occurences:
