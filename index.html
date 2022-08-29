@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <meta name="description" content="Prototype visualization for the Bio/MedVis challenge @ISMB 2022, IBMI/IT University Tübingen">
+        <meta name="author" content="Simon Hackl">
+        
+        <title>Bio/MedVis Challenge @ISMB 2022 IBMI/IT University Tübingen</title>
+
+        <link rel="stylesheet" href="./style.css">
+
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script type="text/javascript" src="https://3Dmol.org/build/3Dmol-min.js"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts@5.1.0/dist/echarts.min.js"></script>
+        <script type="module" src="./data.js"></script>
+        <script type="module" src="./script.js"></script>
+    </head>
+    <div id="main" style="display: block; position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #FAFAFA;">
+        <p style="position: absolute; left: 15px; top: 0px; font-weight: bold; color: #32414B;">Bio/MedVis Challenge @ISMB 2022 IBMI/IT University Tübingen</p>
+        <select id="accSelect" style="position: absolute; left: 515px; top: 15px; width: 200px;">
+            <option disabled selected value> - Select a Protein - </option>
+            <optgroup label="Human">
+                <option value="P01137">TGFB1</option>
+                <option value="P04075">ALDOA</option>
+                <option value="P09651">ROA1</option>
+                <option value="O00571">DDX3X</option>
+            </optgroup>
+            <optgroup label="Mouse">
+                <option value="P04202">TGFB1</option>
+                <option value="P05064">ALDOA</option>
+                <option value="P49312">ROA1</option>
+                <option value="Q62167">DDX3X</option>
+
+            </optgroup>
+        </select>
+        <div id="chartContainer" style="display: block; position: absolute; left: 15px; top: 45px; width: calc( 100% - 30px ); height: calc( 100% - 60px ); border: 1px solid; border-radius: 2px; border-color: #303036; background-color: #FAFAFA;">
+        </div>
+    </div>
+</body>
+</html>
