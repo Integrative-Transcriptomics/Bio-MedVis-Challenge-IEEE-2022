@@ -32,7 +32,7 @@ var CHART_OPTION = {
     {
       show: true,
       top: "2px",
-      left: "200px",
+      left: "160px",
       text: "Common PTM Fraction:",
       textStyle: {
         fontSize: 12,
@@ -42,7 +42,7 @@ var CHART_OPTION = {
     {
       show: true,
       top: "2px",
-      left: HEIGHT * 0.65 + 180 + "px",
+      left: HEIGHT * 0.65 + 140 + "px",
       text: "Secondary Structure Type:",
       textStyle: {
         fontSize: 12,
@@ -52,7 +52,7 @@ var CHART_OPTION = {
     {
       show: true,
       top: "2px",
-      left: HEIGHT * 0.65 + 760 + "px",
+      left: HEIGHT * 0.65 + 720 + "px",
       text: "No. PTMs:",
       textStyle: {
         fontSize: 12,
@@ -498,14 +498,13 @@ var CHART_OPTION = {
       text: ["100%", "0%"],
       padding: [5, 20, 5, 0],
       textGap: 5,
-
       hoverLink: true,
       inverse: false,
       orient: "horizontal",
-      itemHeight: HEIGHT * 0.65 - 220,
+      itemHeight: HEIGHT * 0.65 - 260,
       itemWidth: 12,
       top: "0px",
-      left: "350px",
+      left: "320px",
       textStyle: {
         color: "#607196",
         fontSize: 11,
@@ -562,7 +561,7 @@ var CHART_OPTION = {
         },
       ],
       top: "0px",
-      left: HEIGHT * 0.65 + 360 + "px",
+      left: HEIGHT * 0.65 + 320 + "px",
       orient: "horizontal",
       selectMode: false,
     },
@@ -573,9 +572,10 @@ var CHART_OPTION = {
       pieces: [
         { value: 0, label: "Unique", color: "#08519c" },
         { value: 1, label: "Shared", color: "#89BD9E" },
+        { value: 2, label: "Total", color: "#000000" },
       ],
       top: "0px",
-      left: HEIGHT * 0.65 + 840 + "px",
+      left: HEIGHT * 0.65 + 800 + "px",
       orient: "horizontal",
       selectMode: false,
     },
