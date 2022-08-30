@@ -129,6 +129,7 @@ var CHART_OPTION = {
       splitArea: {
         show: true,
         interval: 0,
+        color: [ "#FAFAFA", "#E5E5E5" ]
       },
       hideOverlap: true,
     },
@@ -153,8 +154,9 @@ var CHART_OPTION = {
       axisLabel: {
         fontSize: 11,
       },
-      minInterval: 20,
       hideOverlap: true,
+      minInterval: 1,
+      max: 0
     },
     {
       id: "presenceAbsenceMapX",
@@ -179,16 +181,18 @@ var CHART_OPTION = {
       axisTick: {
         length: 15,
         lineStyle: { width: "1" },
+        alignWithLabel: true,
+        interval: 0
       },
-
       splitArea: {
-        show: true,
+        show: false,
         interval: 0,
-        areaStyle: {
-          color: ["#FAFAFA", "#FAFAFA"],
+        /*areaStyle: {
+          color: [ "#FAFAFA", "#E5E5E5" ],
           opacity: 0.5,
           borderColor: "black",
-        },
+          borderWidth: 2
+        }*/
       },
       hideOverlap: true,
     },
@@ -227,6 +231,7 @@ var CHART_OPTION = {
       splitArea: {
         show: true,
         interval: 0,
+        color: [ "#FAFAFA", "#E5E5E5" ]
       },
       hideOverlap: true,
     },
@@ -244,8 +249,9 @@ var CHART_OPTION = {
       axisLabel: {
         fontSize: 11,
       },
-      minInterval: 20,
       hideOverlap: true,
+      minInterval: 1,
+      max: 0
     },
     {
       id: "ptmBarsRightY",
@@ -444,26 +450,31 @@ var CHART_OPTION = {
       type: "inside",
       show: false,
       xAxisIndex: 1,
+      zoomOnMouseWheel: false
     },
     {
       type: "inside",
       show: false,
       yAxisIndex: 2,
+      zoomOnMouseWheel: false
     },
     {
       type: "inside",
       show: false,
       yAxisIndex: 3,
+      zoomOnMouseWheel: false
     },
     {
       type: "inside",
       show: false,
       xAxisIndex: 4,
+      zoomOnMouseWheel: false
     },
     {
       type: "inside",
       show: false,
       yAxisIndex: 5,
+      zoomOnMouseWheel: false
     },
     {
       type: "slider",
@@ -587,7 +598,7 @@ var CHART_OPTION = {
       data: [],
       itemStyle: {
         borderColor: "#CCCCCC",
-        borderWidth: 0.5,
+        borderWidth: 0.5
       },
       progressive: PROGRESSIVE_RENDERING_VALUE,
       emphasis: {
@@ -603,7 +614,7 @@ var CHART_OPTION = {
       itemStyle: {
         borderColor: "#CCCCCC",
         borderWidth: 0.5,
-        color: "#999999",
+        color: "#999999"
       },
       progressive: PROGRESSIVE_RENDERING_VALUE,
       emphasis: {
@@ -618,8 +629,8 @@ var CHART_OPTION = {
       data: [],
       itemStyle: {
         borderColor: "#CCCCCC",
-        borderWidth: 0.75,
-        color: "#030303",
+        borderWidth: 0.5,
+        color: "#030303"
       },
       xAxisIndex: 3,
       yAxisIndex: 3,
@@ -684,10 +695,7 @@ window.onload = (_) => {
       CHART.setOption(CHART_OPTION, { replaceMerge: ["xAxis"] });
     } else if (event.dataZoomIndex !== undefined) {
       return;
-    } else if (
-      event.batch[0].dataZoomId == "\x00_ec_\x00toolbox-dataZoom_xAxis0" &&
-      event.batch[1].dataZoomId == "\x00_ec_\x00toolbox-dataZoom_yAxis0"
-    ) {
+    } else if ( event.batch[0].dataZoomId == "\x00_ec_\x00toolbox-dataZoom_xAxis0" && event.batch[1].dataZoomId == "\x00_ec_\x00toolbox-dataZoom_yAxis0" ) {
       if (
         event.batch[0].startValue &&
         event.batch[0].endValue &&
@@ -790,7 +798,9 @@ function updateChart(proteinAcc) {
   CHART_OPTION.yAxis[0].data = [];
   CHART_OPTION.xAxis[1].data = [];
   CHART_OPTION.yAxis[1].data = [];
+  CHART_OPTION.yAxis[1].max = 0;
   CHART_OPTION.xAxis[2].data = [];
+  CHART_OPTION.xAxis[2].max = 0;
   CHART_OPTION.yAxis[2].data = [];
   CHART_OPTION.xAxis[3].data = [];
   CHART_OPTION.yAxis[3].data = [];
@@ -809,7 +819,7 @@ function updateChart(proteinAcc) {
     itemStyle: {
       color: "#89BD9E",
     },
-    large: true,
+    large: false,
     emphasis: {
       disabled: true,
     },
@@ -827,7 +837,7 @@ function updateChart(proteinAcc) {
     itemStyle: {
       color: "#08519c",
     },
-    large: true,
+    large: false,
     emphasis: {
       disabled: true,
     },
@@ -845,7 +855,7 @@ function updateChart(proteinAcc) {
     itemStyle: {
       color: "black",
     },
-    large: true,
+    large: false,
     emphasis: {
       disabled: true,
     },
@@ -863,7 +873,7 @@ function updateChart(proteinAcc) {
     itemStyle: {
       color: "black",
     },
-    large: true,
+    large: false,
     emphasis: {
       disabled: true,
     },
@@ -945,6 +955,14 @@ function updateChart(proteinAcc) {
       ) {
         CHART_OPTION.series[1].data.push([residueNumber - 1, pairResidueNumber - 1, 0]);
       }
+    }
+    let barHeight = noJointPTMs + uniquePTMs.size;
+    if ( barHeight > CHART_OPTION.xAxis[ 2 ].max  ) {
+      console.log( residue + " " + barHeight );
+      CHART_OPTION.xAxis[ 2 ].max = barHeight;
+    }
+    if ( barHeight > CHART_OPTION.yAxis[ 1 ].max ) {
+      CHART_OPTION.yAxis[ 1 ].max = barHeight;
     }
     PTMBarsTopJoint.data.push(noJointPTMs);
     PTMBarsTopUnique.data.push(uniquePTMs.size);
