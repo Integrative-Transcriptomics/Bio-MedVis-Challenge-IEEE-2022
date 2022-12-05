@@ -1,2 +1,3 @@
-# EpiProteomicsVis-Challenge-ISMB2022
-Space to collect prototypes and code for the EpiProteomicsVis challenge @ISMB2022
+# Bio+MedVis Challenge @IEEE 2022
+
+Space to collect prototypes and code for the Bio+MedVis challenge submission of the IBMI IT group @IEEE 2022
